@@ -1,8 +1,12 @@
+import { config } from "dotenv";
 import express from "express";
+import { env } from "./env.js";
+
+config();
 
 const app = express();
 
-const PORT = 3000;
+const PORT = env.PORT;
 
 app.get('/', (req, res) => {
     res.send('Test Route')
