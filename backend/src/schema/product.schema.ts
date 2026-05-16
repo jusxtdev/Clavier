@@ -3,8 +3,8 @@ import { z } from "zod";
 const newProduct = z.object({
     title : z.string().max(200),
     description : z.string(),
-    price : z.coerce.number(),
-    stock : z.int(),
+    price : z.float64().min(1),
+    stock : z.int().min(0),
     category : z.string().optional(),
     images : z.string().optional()
 })
@@ -14,7 +14,8 @@ const updateProduct = newProduct.partial()
 export type UpdateProductInput = z.infer<typeof updateProduct>
 
 const ProductSchema = {
-    newProduct
+    newProduct,
+    updateProduct
 }
 
 export default ProductSchema;
