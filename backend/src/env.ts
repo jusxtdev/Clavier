@@ -6,6 +6,7 @@ config();
 export const env = createEnv({
   server: {
     PORT: z.coerce.number(),
+    DATABASE_URL : z.url()
   },
   runtimeEnv: process.env,
 });
