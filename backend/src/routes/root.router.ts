@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import productRouter from "./product.router.js"
+import productRouter from "./product.router.js";
 
 const router = express.Router();
 
@@ -11,6 +11,6 @@ router.get("/", async (req: Request, res: Response) => {
   });
 });
 
-router.use('/products', productRouter)
+router.use("/products", productRouter);
 
 export default router;
