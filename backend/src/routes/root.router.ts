@@ -1,6 +1,5 @@
-import express, { NextFunction, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import productRouter from "./product.router.js";
-import { jsonErrorResponse } from "@/utils/jsonResponse.js";
 
 const router = express.Router();
 
@@ -13,7 +12,5 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.use("/products", productRouter);
-
-
 
 export default router;

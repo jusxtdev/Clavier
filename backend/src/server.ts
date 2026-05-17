@@ -1,23 +1,31 @@
 import { config } from "dotenv";
-import express , {Request, Response}from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { env } from "./env.js";
 import { connectDB, disconnectDB } from "./config/db.js";
 
-import rootRouter from './routes/root.router.js'
-import { jsonErrorResponse } from "./utils/jsonResponse.js";
+import rootRouter from "./routes/root.router.js";
+import { AppError } from "./utils/AppError.js";
 
 config();
 connectDB();
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
 
 const PORT = env.PORT;
 
 app.use("/api", rootRouter);
-app.all("/{*splat}", (req:Request, res : Response) => {
-  res.status(404).json(jsonErrorResponse(`Cannot find ${req.originalUrl}`, "Not found"))
-})
+
+app.all("/{*splat}", (req: Request, res: Response) => {
+  throw new AppError(`${req.method} ${req.originalUrl} Not found`, 404)
+});
+
+app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
+  res.status(err.statusCode || 500).json({
+    status : false,
+    msg : err.message || "Internal Server Error"
+  })
+});
 
 const server = app.listen(PORT, () =>
   console.log(`Server running on PORT ${PORT}`),

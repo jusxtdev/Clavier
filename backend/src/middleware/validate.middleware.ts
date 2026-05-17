@@ -1,6 +1,7 @@
 import { ZodSchema } from "zod";
 import { Request, Response, NextFunction } from "express";
-import { jsonErrorResponse } from "@/utils/jsonResponse.js";
+import { AppError } from "@/utils/AppError.js";
+// import { jsonErrorResponse } from "@/utils/jsonResponse.js";
 
 export const validate =
   (schema: ZodSchema) =>
@@ -13,9 +14,8 @@ export const validate =
       const errorMessage = valid.error.issues
         .map((issue) => issue.message)
         .join(" | ");
-      return res
-        .status(411)
-        .json(jsonErrorResponse("Invalid Data", errorMessage));
+      
+      throw new AppError(errorMessage, 411)
     }
 
     next();

@@ -3,7 +3,8 @@ import {
   CreateProductInput,
   UpdateProductInput,
 } from "@/schema/product.schema.js";
-import { jsonErrorResponse, jsonResponse } from "@/utils/jsonResponse.js";
+import { AppError } from "@/utils/AppError.js";
+import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
 
 const getProducts = async (req: Request, res: Response) => {
@@ -18,6 +19,7 @@ const getProducts = async (req: Request, res: Response) => {
       images: true,
     },
   });
+
   res
     .status(200)
     .json(jsonResponse(true, "All products fetched successfully", allProducts));
@@ -33,14 +35,7 @@ const getProductById = async (req: Request, res: Response) => {
   });
 
   if (!product) {
-    return res
-      .status(404)
-      .json(
-        jsonErrorResponse(
-          "Product not Found",
-          `Product of id ${productId} not found`,
-        ),
-      );
+    throw new AppError(`Product with id ${productId} not found`, 404)
   }
 
   return res
@@ -57,15 +52,9 @@ const createProduct = async (req: Request, res: Response) => {
     },
   });
 
+
   if (productExists) {
-    return res
-      .status(409)
-      .json(
-        jsonErrorResponse(
-          "Use another Title",
-          `Title : ${data.title} already exists`,
-        ),
-      );
+    throw new AppError(`Title : ${data.title} already exists`, 409)
   }
 
   // create new Product
@@ -88,33 +77,35 @@ const updateProduct = async (req: Request, res: Response) => {
   const data: UpdateProductInput = req.body;
 
   const updatedProduct = await prisma.product.update({
-    where : {
-      id : productId
+    where: {
+      id: productId,
     },
-    data : data
-  })
+    data: data,
+  });
 
-  return res.status(200).json(jsonResponse(true, "Update successfully", updatedProduct))
+  return res
+    .status(200)
+    .json(jsonResponse(true, "Update successfully", updatedProduct));
 };
 
-const deleteProduct = async (req : Request, res : Response) => {
-  const productId = Number(req.params.id)
+const deleteProduct = async (req: Request, res: Response) => {
+  const productId = Number(req.params.id);
 
   await prisma.product.delete({
-    where : {
-      id : productId
-    }
-  })
+    where: {
+      id: productId,
+    },
+  });
 
-  return res.status(204).send()
-}
+  return res.status(204).send();
+};
 
 const ProductController = {
   getProducts,
   createProduct,
   getProductById,
   updateProduct,
-  deleteProduct
+  deleteProduct,
 };
 
 export default ProductController;

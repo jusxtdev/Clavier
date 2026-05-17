@@ -1,4 +1,4 @@
-export const jsonResponse = (status: boolean, msg: string, data: any) => {
+export const jsonResponse = <T>(status: boolean, msg: string, data?: T) => {
   return {
     status,
     msg,
@@ -6,10 +6,10 @@ export const jsonResponse = (status: boolean, msg: string, data: any) => {
   };
 };
 
-export const jsonErrorResponse = (msg: string, error: string) => {
-  return {
-    status: false,
-    msg,
-    error,
-  };
-};
+// export const jsonErrorResponse = (msg: string, error: string) => {
+//   return {
+//     status: false,
+//     msg,
+//     error,
+//   };
+// };
