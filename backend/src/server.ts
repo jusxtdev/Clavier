@@ -1,10 +1,11 @@
 import { config } from "dotenv";
-import express, { NextFunction, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import { env } from "./env.js";
 import { connectDB, disconnectDB } from "./config/db.js";
 
 import rootRouter from "./routes/root.router.js";
 import { AppError } from "./utils/AppError.js";
+import { errorHandler } from "./middleware/errorHandler.middleware.js";
 
 config();
 connectDB();
@@ -16,16 +17,13 @@ const PORT = env.PORT;
 
 app.use("/api", rootRouter);
 
-app.all("/{*splat}", (req: Request, res: Response) => {
+// All route catcher for undefined routees
+app.all("/{*splat}", (req: Request, _res: Response) => {
   throw new AppError(`${req.method} ${req.originalUrl} Not found`, 404)
 });
 
-app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
-  res.status(err.statusCode || 500).json({
-    status : false,
-    msg : err.message || "Internal Server Error"
-  })
-});
+// gloabal error handler
+app.use(errorHandler);
 
 const server = app.listen(PORT, () =>
   console.log(`Server running on PORT ${PORT}`),

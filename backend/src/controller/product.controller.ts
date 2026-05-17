@@ -7,7 +7,7 @@ import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
 
-const getProducts = async (req: Request, res: Response) => {
+const getProducts = async (_req: Request, res: Response) => {
   const allProducts = await prisma.product.findMany({
     select: {
       id: true,

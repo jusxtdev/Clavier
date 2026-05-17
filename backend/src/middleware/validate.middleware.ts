@@ -5,7 +5,7 @@ import { AppError } from "@/utils/AppError.js";
 
 export const validate =
   (schema: ZodSchema) =>
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction) => {
     const body = req.body;
 
     const valid = schema.safeParse(body);
