@@ -7,7 +7,12 @@ import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
 
-const getProducts = async (_req: Request, res: Response) => {
+const getProducts = async (req: Request, res: Response) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+
+  const totalProductsCount = await prisma.product.count()
+
   const allProducts = await prisma.product.findMany({
     select: {
       id: true,
@@ -18,11 +23,17 @@ const getProducts = async (_req: Request, res: Response) => {
       category: true,
       images: true,
     },
+    skip : (page - 1 ) * limit,
+    take : limit
   });
 
+  const paginationData  = {
+    page, limit, 
+    totalItems : totalProductsCount
+  } 
   res
     .status(200)
-    .json(jsonResponse(true, "All products fetched successfully", allProducts));
+    .json(jsonResponse(true, "All products fetched successfully", allProducts, paginationData ));
 };
 
 const getProductById = async (req: Request, res: Response) => {
@@ -35,7 +46,7 @@ const getProductById = async (req: Request, res: Response) => {
   });
 
   if (!product) {
-    throw new AppError(`Product with id ${productId} not found`, 404)
+    throw new AppError(`Product with id ${productId} not found`, 404);
   }
 
   return res
@@ -52,9 +63,8 @@ const createProduct = async (req: Request, res: Response) => {
     },
   });
 
-
   if (productExists) {
-    throw new AppError(`Title : ${data.title} already exists`, 409)
+    throw new AppError(`Title : ${data.title} already exists`, 409);
   }
 
   // create new Product

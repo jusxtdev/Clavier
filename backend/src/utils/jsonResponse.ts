@@ -1,8 +1,23 @@
-export const jsonResponse = <T>(status: boolean, msg: string, data?: T) => {
+type PaginationData = {
+  page: number ;
+  limit: number;
+  totalItems: number;
+};
+
+export const jsonResponse = <T>(
+  status: boolean,
+  msg: string,
+  data?: T,
+  paginationData?: PaginationData,
+) => {
+
   return {
     status,
     msg,
     data,
+    page : paginationData?.page,
+    limit : paginationData?.limit,
+    totalItems : paginationData?.totalItems
   };
 };
 
