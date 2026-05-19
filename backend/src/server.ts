@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import express, { Request, Response } from "express";
 import { env } from "./env.js";
 import { connectDB, disconnectDB } from "./config/db.js";
-
+import cookieParser from "cookie-parser"
 import rootRouter from "./routes/root.router.js";
 import { AppError } from "./utils/AppError.js";
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
@@ -11,9 +11,12 @@ config();
 connectDB();
 
 const app = express();
-app.use(express.json());
 
 const PORT = env.PORT;
+
+app.use(express.json());
+app.use(express.urlencoded({extended: true}))
+app.use(cookieParser())
 
 app.use("/api", rootRouter);
 
