@@ -1,19 +1,26 @@
 import ProductController from "@/controller/product.controller.js";
-import authMiddleware from "@/middleware/auth.middleware.js";
+import authenticate from "@/middleware/authenticate.middleware.js";
+import authorize from "@/middleware/authorize.middleware.js";
 import { validate } from "@/middleware/validate.middleware.js";
 import ProductSchema from "@/schema/product.schema.js";
 import express from "express";
 
 const router = express.Router();
 
-router.get("/", authMiddleware, ProductController.getProducts);
+// Each route is accessible to logged in users only
+router.use(authenticate)
 
-router.get("/:id", authMiddleware, ProductController.getProductById);
+router.get("/",  ProductController.getProducts);
 
-router.post("/", authMiddleware, validate(ProductSchema.newProduct), ProductController.createProduct)
+router.get("/:id", ProductController.getProductById);
 
-router.patch("/:id", authMiddleware, validate(ProductSchema.updateProduct), ProductController.updateProduct)
+// only ADMIN can CREATE new products
+router.post("/", authorize(["ADMIN"]), validate(ProductSchema.newProduct), ProductController.createProduct)
 
-router.delete("/:id", authMiddleware, ProductController.deleteProduct)
+// only ADMIN and STAFF can UPDATE a product (stock / price etc.)
+router.patch("/:id", authorize(["ADMIN", "STAFF"]), validate(ProductSchema.updateProduct), ProductController.updateProduct)
+
+// only ADMIN can DELETE products
+router.delete("/:id", authorize(["ADMIN"]), ProductController.deleteProduct)
 
 export default router;

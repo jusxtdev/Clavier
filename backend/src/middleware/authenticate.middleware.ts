@@ -5,7 +5,7 @@ import { jwtPayload } from "@/utils/generateToken.js";
 import { prisma } from "@/config/db.js";
 import { AppError } from "@/utils/AppError.js";
 
-const authMiddleware = async (
+const authenticate = async (
   req: Request,
   _res: Response,
   next: NextFunction,
@@ -19,10 +19,18 @@ const authMiddleware = async (
   ) {
     token = req.headers.authorization.split(" ")[1];
   } else if (req.cookies?.jwt) token = req.cookies.jwt;
-  
+
   try {
     // extract user data
     const decoded = jwt.verify(token, env.JWT_SECRET) as jwtPayload;
+
+    if (!decoded.userId) {
+      throw new AppError("Invalid Token Payload", 401);
+    }
+
+    // console.log(
+    //   `ID : ${decoded.userId} Role : ${decoded.role}\nToken : ${token}`,
+    // );
 
     // check if user exists
     const userExists = await prisma.user.findUnique({
@@ -42,8 +50,8 @@ const authMiddleware = async (
 
     next();
   } catch (error) {
-    throw new AppError("Invalid Token", 401);
+    throw new AppError(`${error!}`, 401);
   }
 };
 
-export default authMiddleware;
+export default authenticate;

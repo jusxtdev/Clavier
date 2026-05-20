@@ -86,12 +86,19 @@ const updateProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
   const data: UpdateProductInput = req.body;
 
-  const updatedProduct = await prisma.product.update({
-    where: {
-      id: productId,
-    },
-    data: data,
-  });
+  let updatedProduct;
+  try {
+    updatedProduct = await prisma.product.update({
+      where: {
+        id: productId,
+      },
+      data: data,
+    });
+  } catch (error) {
+    console.error(error)
+    throw new AppError("Internal Server Error", 500)
+  }
+    
 
   return res
     .status(200)
