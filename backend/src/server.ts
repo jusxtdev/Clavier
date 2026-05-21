@@ -8,7 +8,8 @@ import { AppError } from "./utils/AppError.js";
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
 
 config();
-connectDB();
+
+await connectDB();
 
 const app = express();
 
