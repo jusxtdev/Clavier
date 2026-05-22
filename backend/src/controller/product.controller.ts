@@ -11,6 +11,10 @@ const getProducts = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
 
+  if (page <= 0 || limit <= 0){
+    throw new AppError("Invalid Pagination Data", 411)
+  }
+
   const totalProductsCount = await prisma.product.count();
 
   const allProducts = await prisma.product.findMany({
