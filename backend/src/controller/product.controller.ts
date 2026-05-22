@@ -11,7 +11,7 @@ const getProducts = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
 
-  const totalProductsCount = await prisma.product.count()
+  const totalProductsCount = await prisma.product.count();
 
   const allProducts = await prisma.product.findMany({
     select: {
@@ -23,17 +23,25 @@ const getProducts = async (req: Request, res: Response) => {
       category: true,
       images: true,
     },
-    skip : (page - 1 ) * limit,
-    take : limit
+    skip: (page - 1) * limit,
+    take: limit,
   });
 
-  const paginationData  = {
-    page, limit, 
-    totalItems : totalProductsCount
-  } 
+  const paginationData = {
+    page,
+    limit,
+    totalItems: totalProductsCount,
+  };
   res
     .status(200)
-    .json(jsonResponse(true, "All products fetched successfully", allProducts, paginationData ));
+    .json(
+      jsonResponse(
+        true,
+        "All products fetched successfully",
+        allProducts,
+        paginationData,
+      ),
+    );
 };
 
 const getProductById = async (req: Request, res: Response) => {
@@ -95,10 +103,12 @@ const updateProduct = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error) {
-    console.error(error)
-    throw new AppError("Internal Server Error", 500)
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
-    
+  if (!updatedProduct) {
+    throw new AppError(`Product with id : ${productId} not found`, 404);
+  }
 
   return res
     .status(200)
@@ -107,12 +117,20 @@ const updateProduct = async (req: Request, res: Response) => {
 
 const deleteProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
-
-  await prisma.product.delete({
-    where: {
-      id: productId,
-    },
-  });
+  
+  let deleted;
+  try {
+    deleted = await prisma.product.delete({
+      where: {
+        id: productId,
+      },
+    });
+  } catch (error) {
+    throw new AppError("Internal Server Error", 500);
+  }
+  if (!deleted) {
+    throw new AppError(`Product with id : ${productId} not found`, 404);
+  }
 
   return res.status(204).send();
 };

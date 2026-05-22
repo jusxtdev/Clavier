@@ -32,3 +32,13 @@ export type User = Prisma.UserModel
  * 
  */
 export type Password_reset_token = Prisma.Password_reset_tokenModel
+/**
+ * Model Category
+ * 
+ */
+export type Category = Prisma.CategoryModel
+/**
+ * Model CategoriesOnProducts
+ * 
+ */
+export type CategoriesOnProducts = Prisma.CategoriesOnProductsModel

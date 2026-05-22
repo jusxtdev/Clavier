@@ -19,18 +19,19 @@ const signup = async (req: Request, res: Response) => {
   const data: signupInput = req.body;
 
   // check if user with same email already exists
+  let emailExists;
   try {
-    const emailExists = await prisma.user.findUnique({
+    emailExists = await prisma.user.findUnique({
       where: {
         email: data.email,
       },
     });
-    if (emailExists) {
-      throw new AppError(`User with email : ${data.email} already exists`, 409);
-    }
   } catch (error) {
     console.error(error);
     throw new AppError("Internal Server Error", 500);
+  }
+  if (emailExists) {
+    throw new AppError(`User with email : ${data.email} already exists`, 409);
   }
 
   // hash password
@@ -84,12 +85,12 @@ const login = async (req: Request, res: Response) => {
         email: data.email,
       },
     });
-    if (!user) {
-      throw new AppError(`User with email : ${data.email} not found`, 404);
-    }
   } catch (error) {
     console.error(error);
     throw new AppError("Internal Server Error", 500);
+  }
+  if (!user) {
+    throw new AppError(`User with email : ${data.email} not found`, 404);
   }
 
   // check password
@@ -185,23 +186,22 @@ const resetpass = async (req: Request, res: Response) => {
       where: {
         userId: Number(userId),
       },
-      orderBy : {
-        token_expiry : "desc"
-      }
+      orderBy: {
+        token_expiry: "desc",
+      },
     });
-
-    if (!tokenRow) {
-      throw new AppError("Token Not found", 404);
-    }
   } catch (error) {
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
+  if (!tokenRow) {
+    throw new AppError("Token Not found", 404);
+  }
 
   // compare token
-  const matches = await bcrypt.compare(resetToken, tokenRow.token)
-  if (!matches){
-    throw new AppError("Invalid Token", 401)
+  const matches = await bcrypt.compare(resetToken, tokenRow.token);
+  if (!matches) {
+    throw new AppError("Invalid Token", 401);
   }
 
   const now = new Date(Date.now());
@@ -225,10 +225,32 @@ const resetpass = async (req: Request, res: Response) => {
       data: {
         password: hashedPass,
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
     });
   } catch (error) {
     console.error(error);
     throw new AppError("Internal Server Error", 500);
+  }
+
+  // delete the token after updating the password
+  try {
+    console.log(userId, "-----", resetToken)
+    await prisma.password_reset_token.delete({
+      where : {
+        userId_token : {
+          userId : Number(userId),
+          token : tokenRow.token
+        }
+      }
+    })
+  } catch (error) {
+    console.error(error)
+    throw new AppError("Internal Server Error", 500)
   }
 
   res

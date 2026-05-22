@@ -15,7 +15,7 @@ export const validate =
         .map((issue) => issue.message)
         .join(" | ");
 
-      throw new AppError(errorMessage, 411);
+      throw new AppError(errorMessage, 400);
     }
 
     next();

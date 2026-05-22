@@ -211,7 +211,7 @@ export type Password_reset_tokenOrderByWithRelationInput = {
 }
 
 export type Password_reset_tokenWhereUniqueInput = Prisma.AtLeast<{
-  token_userId?: Prisma.Password_reset_tokenTokenUserIdCompoundUniqueInput
+  userId_token?: Prisma.Password_reset_tokenUserId_tokenCompoundUniqueInput
   AND?: Prisma.Password_reset_tokenWhereInput | Prisma.Password_reset_tokenWhereInput[]
   OR?: Prisma.Password_reset_tokenWhereInput[]
   NOT?: Prisma.Password_reset_tokenWhereInput | Prisma.Password_reset_tokenWhereInput[]
@@ -219,7 +219,7 @@ export type Password_reset_tokenWhereUniqueInput = Prisma.AtLeast<{
   token_expiry?: Prisma.DateTimeFilter<"Password_reset_token"> | Date | string
   userId?: Prisma.IntFilter<"Password_reset_token"> | number
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "token_userId">
+}, "userId_token">
 
 export type Password_reset_tokenOrderByWithAggregationInput = {
   token?: Prisma.SortOrder
@@ -292,7 +292,7 @@ export type Password_reset_tokenOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type Password_reset_tokenTokenUserIdCompoundUniqueInput = {
+export type Password_reset_tokenUserId_tokenCompoundUniqueInput = {
   token: string
   userId: number
 }

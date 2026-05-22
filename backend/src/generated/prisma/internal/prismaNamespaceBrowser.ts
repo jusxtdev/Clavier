@@ -53,7 +53,9 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Product: 'Product',
   User: 'User',
-  Password_reset_token: 'Password_reset_token'
+  Password_reset_token: 'Password_reset_token',
+  Category: 'Category',
+  CategoriesOnProducts: 'CategoriesOnProducts'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -104,6 +106,24 @@ export const Password_reset_tokenScalarFieldEnum = {
 } as const
 
 export type Password_reset_tokenScalarFieldEnum = (typeof Password_reset_tokenScalarFieldEnum)[keyof typeof Password_reset_tokenScalarFieldEnum]
+
+
+export const CategoryScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description'
+} as const
+
+export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
+
+
+export const CategoriesOnProductsScalarFieldEnum = {
+  productId: 'productId',
+  categoryId: 'categoryId',
+  assignedAt: 'assignedAt'
+} as const
+
+export type CategoriesOnProductsScalarFieldEnum = (typeof CategoriesOnProductsScalarFieldEnum)[keyof typeof CategoriesOnProductsScalarFieldEnum]
 
 
 export const SortOrder = {
