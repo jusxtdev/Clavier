@@ -10,6 +10,9 @@ export const env = createEnv({
     JWT_SECRET: z.string(),
     JWT_EXPIRES_IN: z.coerce.number(),
     NODE_ENV: z.string(),
+    SENDER_EMAIL_PASS : z.string(),
+    SENDER_EMAIL : z.email(),
+    FRONTEND_URL : z.url().default(""),
   },
   runtimeEnv: process.env,
 });

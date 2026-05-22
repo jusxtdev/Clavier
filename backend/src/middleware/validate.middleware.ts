@@ -14,8 +14,8 @@ export const validate =
       const errorMessage = valid.error.issues
         .map((issue) => issue.message)
         .join(" | ");
-      
-      throw new AppError(errorMessage, 411)
+
+      throw new AppError(errorMessage, 411);
     }
 
     next();

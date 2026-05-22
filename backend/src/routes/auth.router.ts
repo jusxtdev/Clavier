@@ -11,4 +11,8 @@ router.post("/login", validate(AuthSchema.loginSchema), AuthController.login);
 
 router.post("/logout", AuthController.logout);
 
+router.post("/forgotpass", validate(AuthSchema.forgotpassSchema), AuthController.forgotpass)
+
+router.post("/resetpass", validate(AuthSchema.resetpassSchema), AuthController.resetpass)
+
 export default router;

@@ -13,7 +13,7 @@ await connectDB();
 
 const app = express();
 
-const PORT = env.PORT;
+const PORT = env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))

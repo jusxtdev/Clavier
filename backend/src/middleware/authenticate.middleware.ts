@@ -28,9 +28,6 @@ const authenticate = async (
       throw new AppError("Invalid Token Payload", 401);
     }
 
-    // console.log(
-    //   `ID : ${decoded.userId} Role : ${decoded.role}\nToken : ${token}`,
-    // );
 
     // check if user exists
     const userExists = await prisma.user.findUnique({
