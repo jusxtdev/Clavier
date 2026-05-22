@@ -3,7 +3,6 @@ import { promoteUserRoleInput } from "@/schema/user.schema.js";
 import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
-import { ro } from "zod/locales";
 
 const getCurrentUser = async (req: Request, res: Response) => {
   const userId = Number(req.user?.userId);

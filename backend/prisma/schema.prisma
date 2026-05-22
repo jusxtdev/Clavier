@@ -21,6 +21,10 @@ model Product {
   category String?
   images String?
 
+  // relations
+  categories CategoriesOnProducts[]
+
+
   createdAt DateTime @default(now())
 }
 enum Role {
@@ -46,4 +50,23 @@ model Password_reset_token {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([token, userId])
+}
+
+model Category {
+  id  Int @id @default(autoincrement())
+  title String @unique
+  description String?
+
+  products CategoriesOnProducts[]
+}
+
+model CategoriesOnProducts {
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+
+  categoryId Int
+  category Category @relation(fields: [categoryId], references: [id])
+
+  assignedAt DateTime @default(now())
+  @@id([productId, categoryId])
 }
