@@ -1,7 +1,9 @@
 import { prisma } from "@/config/db.js";
+import { promoteUserRoleInput } from "@/schema/user.schema.js";
 import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
+import { ro } from "zod/locales";
 
 const getCurrentUser = async (req: Request, res: Response) => {
   const userId = Number(req.user?.userId);
@@ -100,46 +102,72 @@ const getUsers = async (req: Request, res: Response) => {
     );
 };
 
-const delteUserById = async (req:Request, res : Response) => {
-    const userId = Number(req.params.id)
+const promoteUserRole = async (req: Request, res: Response) => {
+  const { userId, role }: promoteUserRoleInput = req.body;
+  
+  let updated
+  try {
+    updated = await prisma.user.update({
+      where : {
+        id : Number(userId)
+      },
+      data : {
+        role : role
+      }
+    })
 
-    try {
-        await prisma.user.delete({
-            where : {
-                id : userId
-            }
-        })
-    } catch (error) {
-        console.error(error)
-        throw new AppError("Internal Server Error", 500)
+    if (!updated){
+      throw new AppError(`User with id : ${userId} Not found`, 404)
     }
+  } catch (error) {
+    console.error(error)
+    throw new AppError("Internal Server Error", 500)
+  }
 
-    return res.status(204).send()
-}
+  res.status(200).json(jsonResponse(true, "User Promoted Successfully", updated))
+};
 
-const deleteCurrentUser = async (req:Request, res:Response) => {
-    const userId = req.user?.userId
+const delteUserById = async (req: Request, res: Response) => {
+  const userId = Number(req.params.id);
 
-    try {
-        await prisma.user.delete({
-            where : {
-                id : userId
-            }
-        })
-    } catch (error) {
-        console.error(error)
-        throw new AppError("Internal Server Error", 500)
-    }
+  try {
+    await prisma.user.delete({
+      where: {
+        id: userId,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
+  }
 
-    res.status(204).send()
-}
+  return res.status(204).send();
+};
+
+const deleteCurrentUser = async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+
+  try {
+    await prisma.user.delete({
+      where: {
+        id: userId,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
+  }
+
+  res.status(204).send();
+};
 
 const UserController = {
   getCurrentUser,
   getUserById,
   getUsers,
   delteUserById,
-  deleteCurrentUser
+  deleteCurrentUser,
+  promoteUserRole,
 };
 
 export default UserController;
