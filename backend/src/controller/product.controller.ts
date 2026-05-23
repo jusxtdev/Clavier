@@ -1,4 +1,5 @@
 import { prisma } from "@/config/db.js";
+import { Prisma } from "@/generated/prisma/client.js";
 import {
   CreateProductInput,
   UpdateProductInput,
@@ -11,25 +12,32 @@ const getProducts = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
 
-  if (page <= 0 || limit <= 0){
-    throw new AppError("Invalid Pagination Data", 411)
+  if (page <= 0 || limit <= 0) {
+    throw new AppError("Invalid Pagination Data", 411);
   }
 
-  const totalProductsCount = await prisma.product.count();
+  let totalProductsCount;
+  let allProducts;
+  try {
+    totalProductsCount = await prisma.product.count();
 
-  const allProducts = await prisma.product.findMany({
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      price: true,
-      stock: true,
-      category: true,
-      images: true,
-    },
-    skip: (page - 1) * limit,
-    take: limit,
-  });
+    allProducts = await prisma.product.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        stock: true,
+        category: true,
+        images: true,
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+  } catch (error) {
+    console.error(error)
+    throw new AppError("Internal Server Error", 500)
+  }
 
   const paginationData = {
     page,
@@ -50,15 +58,23 @@ const getProducts = async (req: Request, res: Response) => {
 
 const getProductById = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
+  let product;
+  try {
+    product = await prisma.product.findUnique({
+      where: {
+        id: productId,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Product Not Found", 404);
+      }
+    }
 
-  const product = await prisma.product.findUnique({
-    where: {
-      id: productId,
-    },
-  });
-
-  if (!product) {
-    throw new AppError(`Product with id ${productId} not found`, 404);
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
 
   return res
@@ -69,25 +85,29 @@ const getProductById = async (req: Request, res: Response) => {
 const createProduct = async (req: Request, res: Response) => {
   const data: CreateProductInput = req.body;
 
-  const productExists = await prisma.product.findUnique({
-    where: {
-      title: data.title,
-    },
-  });
+  // create new Product
+  let newProduct;
+  try {
+    newProduct = await prisma.product.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        stock: data.stock,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record already exists
+      if (error.code == "P2002") {
+        throw new AppError("Product already exists", 409);
+      }
+    }
 
-  if (productExists) {
-    throw new AppError(`Title : ${data.title} already exists`, 409);
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
 
-  // create new Product
-  const newProduct = await prisma.product.create({
-    data: {
-      title: data.title,
-      description: data.description,
-      price: data.price,
-      stock: data.stock,
-    },
-  });
   // respond
   return res
     .status(201)
@@ -107,11 +127,20 @@ const updateProduct = async (req: Request, res: Response) => {
       data: data,
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record already exists
+      if (error.code == "P2002") {
+        throw new AppError("Product already exists", 409);
+      }
+
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Product Not Found", 404);
+      }
+    }
+
     console.error(error);
     throw new AppError("Internal Server Error", 500);
-  }
-  if (!updatedProduct) {
-    throw new AppError(`Product with id : ${productId} not found`, 404);
   }
 
   return res
@@ -121,19 +150,23 @@ const updateProduct = async (req: Request, res: Response) => {
 
 const deleteProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
-  
-  let deleted;
+
   try {
-    deleted = await prisma.product.delete({
+    await prisma.product.delete({
       where: {
         id: productId,
       },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Product Not Found", 404);
+      }
+    }
+
+    console.error(error);
     throw new AppError("Internal Server Error", 500);
-  }
-  if (!deleted) {
-    throw new AppError(`Product with id : ${productId} not found`, 404);
   }
 
   return res.status(204).send();

@@ -1,4 +1,5 @@
 import { prisma } from "@/config/db.js";
+import { Prisma } from "@/generated/prisma/client.js";
 import {
   newCategoryInput,
   updateCategoryInput,
@@ -59,6 +60,13 @@ const getCategoryById = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Category Not Found", 404);
+      }
+    }
+
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
@@ -69,24 +77,6 @@ const getCategoryById = async (req: Request, res: Response) => {
 const createCategory = async (req: Request, res: Response) => {
   const data: newCategoryInput = req.body;
 
-  let categoryExists;
-  try {
-    categoryExists = await prisma.category.findFirst({
-      where: {
-        title: data.title,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
-  if (categoryExists) {
-    throw new AppError(
-      `Category with title : ${data.title} already exists`,
-      409,
-    );
-  }
-
   let newCategory;
   try {
     newCategory = await prisma.category.create({
@@ -96,6 +86,12 @@ const createCategory = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record already exists
+      if (error.code == "P2002") {
+        throw new AppError("Category already exists", 409);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
@@ -123,12 +119,19 @@ const updateCategory = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record already exists
+      if (error.code == "P2002") {
+        throw new AppError("Product already exists", 409);
+      }
+
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Product Not Found", 404);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
-  }
-
-  if (!updatedCategory) {
-    throw new AppError(`Category with id : ${categoryId} not found`, 404);
   }
 
   res
@@ -139,25 +142,24 @@ const updateCategory = async (req: Request, res: Response) => {
 const deleteCategroy = async (req: Request, res: Response) => {
   const categoryId = Number(req.params.id);
 
-  let deleted;
   try {
-    deleted = await prisma.category.delete({
+    await prisma.category.delete({
       where: {
         id: categoryId,
-      }
+      },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Product Not Found", 404);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
 
-  if (!deleted) {
-    throw new AppError(`Category with id : ${categoryId} not found`, 404);
-  }
-
-  res
-    .status(204)
-    .json(jsonResponse(true, "Deleted Successfully"));
+  res.status(204).json(jsonResponse(true, "Deleted Successfully"));
 };
 
 const CategoryController = {

@@ -1,4 +1,5 @@
 import { prisma } from "@/config/db.js";
+import { Prisma } from "@/generated/prisma/client.js";
 import { promoteUserRoleInput } from "@/schema/user.schema.js";
 import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
@@ -20,10 +21,13 @@ const getCurrentUser = async (req: Request, res: Response) => {
         role: true,
       },
     });
-    if (!user) {
-      throw new AppError(`User with id : ${userId} Not found`, 404);
-    }
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("User Not Found", 404);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
@@ -48,11 +52,13 @@ const getUserById = async (req: Request, res: Response) => {
         role: true,
       },
     });
-
-    if (!user) {
-      throw new AppError(`User with id : ${userId} Not found`, 404);
-    }
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("User Not Found", 404);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
@@ -103,27 +109,32 @@ const getUsers = async (req: Request, res: Response) => {
 
 const promoteUserRole = async (req: Request, res: Response) => {
   const { userId, role }: promoteUserRoleInput = req.body;
-  
-  let updated
+
+  let updated;
   try {
     updated = await prisma.user.update({
-      where : {
-        id : Number(userId)
+      where: {
+        id: Number(userId),
       },
-      data : {
-        role : role
-      }
-    })
-
-    if (!updated){
-      throw new AppError(`User with id : ${userId} Not found`, 404)
-    }
+      data: {
+        role: role,
+      },
+    });
   } catch (error) {
-    console.error(error)
-    throw new AppError("Internal Server Error", 500)
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("User Not Found", 404);
+      }
+    }
+
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
 
-  res.status(200).json(jsonResponse(true, "User Promoted Successfully", updated))
+  res
+    .status(200)
+    .json(jsonResponse(true, "User Promoted Successfully", updated));
 };
 
 const delteUserById = async (req: Request, res: Response) => {
@@ -136,6 +147,12 @@ const delteUserById = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("User Not Found", 404);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
@@ -153,6 +170,12 @@ const deleteCurrentUser = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("User Not Found", 404);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }

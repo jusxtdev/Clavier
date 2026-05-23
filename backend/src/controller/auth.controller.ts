@@ -14,25 +14,10 @@ import { jsonResponse } from "@/utils/jsonResponse.js";
 import generateResetToken from "@/utils/generateResetToken.js";
 import { passwordResetEmail } from "@/services/email.services.js";
 import { env } from "@/env.js";
+import { Prisma } from "@/generated/prisma/client.js";
 
 const signup = async (req: Request, res: Response) => {
   const data: signupInput = req.body;
-
-  // check if user with same email already exists
-  let emailExists;
-  try {
-    emailExists = await prisma.user.findUnique({
-      where: {
-        email: data.email,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
-  if (emailExists) {
-    throw new AppError(`User with email : ${data.email} already exists`, 409);
-  }
 
   // hash password
   const SALT = await bcrypt.genSalt(10);
@@ -55,14 +40,20 @@ const signup = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record already exists
+      if (error.code == "P2002") {
+        throw new AppError("Product already exists", 409);
+      }
+      console.error(error);
+      throw new AppError("Internal Server Error", 500);
+    }
   }
 
   // generate token
   const jwtPayload: jwtPayload = {
-    userId: newUser.id,
-    role: newUser.role,
+    userId: newUser!.id,
+    role: newUser!.role,
   };
   const token = generateToken(jwtPayload);
 
@@ -86,11 +77,14 @@ const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Product Not Found", 404);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
-  }
-  if (!user) {
-    throw new AppError(`User with email : ${data.email} not found`, 404);
   }
 
   // check password
@@ -101,8 +95,8 @@ const login = async (req: Request, res: Response) => {
 
   // generate token
   const payload: jwtPayload = {
-    userId: user.id,
-    role: user.role,
+    userId: user!.id,
+    role: user!.role,
   };
   const token = generateToken(payload);
 
@@ -121,20 +115,21 @@ const forgotpass = async (req: Request, res: Response) => {
   const { email }: forgotpassInput = req.body;
 
   // check if email exists
-  let emailExists;
+  let existingUser;
   try {
-    emailExists = await prisma.user.findUnique({
+    existingUser = await prisma.user.findUnique({
       where: {
         email,
       },
     });
-
-    if (!emailExists) {
-      return res
-        .status(200)
-        .json(jsonResponse(true, "Password Reset link sent to your email"));
-    }
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Product Not Found", 404);
+      }
+    }
+    console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
 
@@ -146,7 +141,7 @@ const forgotpass = async (req: Request, res: Response) => {
   const hashedToken = await bcrypt.hash(resetToken, SALT);
 
   // store hashed token in DB
-  const userId = emailExists.id;
+  const userId = existingUser!.id;
   const tokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 60 mins
 
   try {
@@ -158,6 +153,7 @@ const forgotpass = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    console.error(error)
     throw new AppError("Internal Server Error", 500);
   }
 
@@ -191,15 +187,18 @@ const resetpass = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError){
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError("Product Not Found", 404);
+      }
+    }
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
-  if (!tokenRow) {
-    throw new AppError("Token Not found", 404);
-  }
 
   // compare token
-  const matches = await bcrypt.compare(resetToken, tokenRow.token);
+  const matches = await bcrypt.compare(resetToken, tokenRow!.token);
   if (!matches) {
     throw new AppError("Invalid Token", 401);
   }
@@ -220,7 +219,7 @@ const resetpass = async (req: Request, res: Response) => {
   try {
     updated = await prisma.user.update({
       where: {
-        id: tokenRow.userId!,
+        id: tokenRow!.userId!,
       },
       data: {
         password: hashedPass,
@@ -239,18 +238,18 @@ const resetpass = async (req: Request, res: Response) => {
 
   // delete the token after updating the password
   try {
-    console.log(userId, "-----", resetToken)
+    console.log(userId, "-----", resetToken);
     await prisma.password_reset_token.delete({
-      where : {
-        userId_token : {
-          userId : Number(userId),
-          token : tokenRow.token
-        }
-      }
-    })
+      where: {
+        userId_token: {
+          userId: Number(userId),
+          token: tokenRow!.token,
+        },
+      },
+    });
   } catch (error) {
-    console.error(error)
-    throw new AppError("Internal Server Error", 500)
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
 
   res
