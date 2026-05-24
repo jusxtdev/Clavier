@@ -26,7 +26,7 @@ The project is being developed backend-first as a learning and portfolio project
 
 ```txt
 .
-├── ROADMAP.md
+├── README.md
 └── backend
     ├── prisma
     │   ├── migrations
