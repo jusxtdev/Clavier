@@ -1,4 +1,3 @@
-import { prisma } from "@/config/db.js";
 import {
   forgotpassInput,
   loginInput,
@@ -12,9 +11,10 @@ import generateToken, { jwtPayload } from "@/utils/generateToken.js";
 import storeCookie from "@/utils/storeCookie.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import generateResetToken from "@/utils/generateResetToken.js";
-import { passwordResetEmail } from "@/services/email.services.js";
+import { passwordResetEmail } from "@/services/email.service.js";
 import { env } from "@/env.js";
-import { Prisma } from "@/generated/prisma/client.js";
+import UserService from "@/services/user.service.js";
+import ResetTokenService from "@/services/resetToken.service.js";
 
 const signup = async (req: Request, res: Response) => {
   const data: signupInput = req.body;
@@ -24,31 +24,7 @@ const signup = async (req: Request, res: Response) => {
   const hashedPass = await bcrypt.hash(data.password, SALT);
 
   // create user
-  let newUser;
-  try {
-    newUser = await prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        password: hashedPass,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Record already exists
-      if (error.code == "P2002") {
-        throw new AppError("Product already exists", 409);
-      }
-      console.error(error);
-      throw new AppError("Internal Server Error", 500);
-    }
-  }
+  const newUser = await UserService.createNewUser(data, hashedPass);
 
   // generate token
   const jwtPayload: jwtPayload = {
@@ -69,23 +45,7 @@ const login = async (req: Request, res: Response) => {
   const data: loginInput = req.body;
 
   // check if user exists
-  let user;
-  try {
-    user = await prisma.user.findUnique({
-      where: {
-        email: data.email,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Record not found
-      if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
-      }
-    }
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  const user = await UserService.findUserByEmail(data.email);
 
   // check password
   const isValidPassword = await bcrypt.compare(data.password, user!.password);
@@ -115,23 +75,7 @@ const forgotpass = async (req: Request, res: Response) => {
   const { email }: forgotpassInput = req.body;
 
   // check if email exists
-  let existingUser;
-  try {
-    existingUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Record not found
-      if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
-      }
-    }
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  let existingUser = await UserService.findUserByEmail(email);
 
   // generate token
   const resetToken = await generateResetToken();
@@ -144,25 +88,19 @@ const forgotpass = async (req: Request, res: Response) => {
   const userId = existingUser!.id;
   const tokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 60 mins
 
-  try {
-    await prisma.password_reset_token.create({
-      data: {
-        token: hashedToken,
-        token_expiry: tokenExpiry,
-        userId: userId,
-      },
-    });
-  } catch (error) {
-    console.error(error)
-    throw new AppError("Internal Server Error", 500);
-  }
+  const newToken = await ResetTokenService.addNewToken(
+    hashedToken,
+    tokenExpiry,
+    userId,
+  );
 
   // --- send password reset link to email
 
   // Currently no frontend, therefore using backend only
   const baseFrontendURL = env.FRONTEND_URL || `http://localhost:${env.PORT}`;
   const resetLink =
-    baseFrontendURL + `/api/auth/resetpass?token=${userId}.${resetToken}`;
+    baseFrontendURL +
+    `/api/auth/resetpass?token=${newToken.userId}.${newToken.token}`;
   await passwordResetEmail(email, resetLink);
 
   // repsond
@@ -176,26 +114,7 @@ const resetpass = async (req: Request, res: Response) => {
   const { password }: resetpassInput = req.body;
 
   // compare the token and check expiry
-  let tokenRow;
-  try {
-    tokenRow = await prisma.password_reset_token.findFirst({
-      where: {
-        userId: Number(userId),
-      },
-      orderBy: {
-        token_expiry: "desc",
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError){
-      // Record not found
-      if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
-      }
-    }
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  const tokenRow = await ResetTokenService.findTokenByUserId(Number(userId));
 
   // compare token
   const matches = await bcrypt.compare(resetToken, tokenRow!.token);
@@ -215,42 +134,13 @@ const resetpass = async (req: Request, res: Response) => {
   const SALT = await bcrypt.genSalt(10);
   const hashedPass = await bcrypt.hash(password, SALT);
 
-  let updated;
-  try {
-    updated = await prisma.user.update({
-      where: {
-        id: tokenRow!.userId!,
-      },
-      data: {
-        password: hashedPass,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  const updated = await UserService.updatePassById(
+    tokenRow!.userId,
+    hashedPass,
+  );
 
   // delete the token after updating the password
-  try {
-    console.log(userId, "-----", resetToken);
-    await prisma.password_reset_token.delete({
-      where: {
-        userId_token: {
-          userId: Number(userId),
-          token: tokenRow!.token,
-        },
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  await ResetTokenService.deleteTokenByUserIdAndToken(Number(userId), tokenRow!.token)
 
   res
     .status(200)

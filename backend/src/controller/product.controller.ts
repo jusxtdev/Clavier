@@ -1,9 +1,8 @@
-import { prisma } from "@/config/db.js";
-import { Prisma } from "@/generated/prisma/client.js";
 import {
   CreateProductInput,
   UpdateProductInput,
 } from "@/schema/product.schema.js";
+import ProductService from "@/services/product.service.js";
 import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
@@ -20,28 +19,10 @@ const getProducts = async (req: Request, res: Response) => {
     throw new AppError("Invalid Pagination Data", 411);
   }
 
-  let totalProductsCount;
-  let allProducts;
-  try {
-    totalProductsCount = await prisma.product.count();
-
-    allProducts = await prisma.product.findMany({
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        price: true,
-        stock: true,
-        category: true,
-        images: true,
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
-  } catch (error) {
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  let { allProducts, totalProductsCount } = await ProductService.getAllProducts(
+    page,
+    limit,
+  );
 
   const paginationData = {
     page,
@@ -67,24 +48,7 @@ const getProductById = async (req: Request, res: Response) => {
     throw new AppError("Invalid Id", 400);
   }
 
-  let product;
-  try {
-    product = await prisma.product.findUniqueOrThrow({
-      where: {
-        id: productId,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Record not found
-      if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
-      }
-    }
-
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  const product = await ProductService.getProductById(productId);
 
   return res
     .status(200)
@@ -95,28 +59,7 @@ const createProduct = async (req: Request, res: Response) => {
   const data: CreateProductInput = req.body;
 
   // create new Product
-  let newProduct;
-  try {
-    newProduct = await prisma.product.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        price: data.price,
-        stock: data.stock,
-        images : data.images
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Record already exists
-      if (error.code == "P2002") {
-        throw new AppError("Product already exists", 409);
-      }
-    }
-
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  const newProduct = await ProductService.createProduct(data);
 
   // respond
   return res
@@ -132,30 +75,10 @@ const updateProduct = async (req: Request, res: Response) => {
 
   const data: UpdateProductInput = req.body;
 
-  let updatedProduct;
-  try {
-    updatedProduct = await prisma.product.update({
-      where: {
-        id: productId,
-      },
-      data: data,
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Record already exists
-      if (error.code == "P2002") {
-        throw new AppError("Product already exists", 409);
-      }
-
-      // Record not found
-      if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
-      }
-    }
-
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  const updatedProduct = await ProductService.updateProductById(
+    productId,
+    data,
+  );
 
   return res
     .status(200)
@@ -168,23 +91,7 @@ const deleteProduct = async (req: Request, res: Response) => {
     throw new AppError("Invalid Id", 400);
   }
 
-  try {
-    await prisma.product.delete({
-      where: {
-        id: productId,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Record not found
-      if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
-      }
-    }
-
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
-  }
+  await ProductService.deleteProductById(productId);
 
   return res.status(204).send();
 };

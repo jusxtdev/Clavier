@@ -4,6 +4,7 @@ import { env } from "@/env.js";
 import { jwtPayload } from "@/utils/generateToken.js";
 import { prisma } from "@/config/db.js";
 import { AppError } from "@/utils/AppError.js";
+import UserService from "@/services/user.service.js";
 
 const authenticate = async (
   req: Request,
@@ -28,16 +29,8 @@ const authenticate = async (
       throw new AppError("Invalid Token Payload", 401);
     }
 
-
-    // check if user exists
-    const userExists = await prisma.user.findUnique({
-      where: {
-        id: decoded.userId,
-      },
-    });
-    if (!userExists) {
-      throw new AppError(`User with id : ${decoded.userId} not found`, 404);
-    }
+    // check if user exists (service will respond with 404 if not found)
+    await UserService.findUserById(decoded.userId);
 
     // attach user jwt info to req
     req.user = {
