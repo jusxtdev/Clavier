@@ -13,6 +13,10 @@ const getProducts = async (req: Request, res: Response) => {
   const limit = Number(req.query.limit) || 10;
 
   if (page <= 0 || limit <= 0) {
+    throw new AppError("Invalid Pagination Data", 422);
+  }
+
+  if (limit > 50) {
     throw new AppError("Invalid Pagination Data", 411);
   }
 
@@ -35,8 +39,8 @@ const getProducts = async (req: Request, res: Response) => {
       take: limit,
     });
   } catch (error) {
-    console.error(error)
-    throw new AppError("Internal Server Error", 500)
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
 
   const paginationData = {
@@ -58,9 +62,14 @@ const getProducts = async (req: Request, res: Response) => {
 
 const getProductById = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
+
+  if (!productId) {
+    throw new AppError("Invalid Id", 400);
+  }
+
   let product;
   try {
-    product = await prisma.product.findUnique({
+    product = await prisma.product.findUniqueOrThrow({
       where: {
         id: productId,
       },
@@ -94,6 +103,7 @@ const createProduct = async (req: Request, res: Response) => {
         description: data.description,
         price: data.price,
         stock: data.stock,
+        images : data.images
       },
     });
   } catch (error) {
@@ -116,6 +126,10 @@ const createProduct = async (req: Request, res: Response) => {
 
 const updateProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
+  if (!productId) {
+    throw new AppError("Invalid Id", 400);
+  }
+
   const data: UpdateProductInput = req.body;
 
   let updatedProduct;
@@ -150,6 +164,9 @@ const updateProduct = async (req: Request, res: Response) => {
 
 const deleteProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
+  if (!productId) {
+    throw new AppError("Invalid Id", 400);
+  }
 
   try {
     await prisma.product.delete({

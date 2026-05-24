@@ -37,6 +37,8 @@ prisma/dev.db-journal
 prisma/*.db
 prisma/*.db-journal
 
+ROADMAP.md
+
 # =========================
 # Generated Prisma Client
 # (ignore ONLY if generated outside node_modules)

@@ -8,6 +8,10 @@ import { Request, Response } from "express";
 const getCurrentUser = async (req: Request, res: Response) => {
   const userId = Number(req.user?.userId);
 
+  if (!userId) {
+    throw new AppError("Invalid Id", 400);
+  }
+
   let user;
   try {
     user = await prisma.user.findUnique({
@@ -38,7 +42,9 @@ const getCurrentUser = async (req: Request, res: Response) => {
 
 const getUserById = async (req: Request, res: Response) => {
   const userId = Number(req.params.id);
-
+  if (!userId) {
+    throw new AppError("Invalid Id", 400);
+  }
   let user;
   try {
     user = await prisma.user.findUnique({
@@ -70,6 +76,14 @@ const getUserById = async (req: Request, res: Response) => {
 const getUsers = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
+
+  if (page <= 0 || limit <= 0) {
+    throw new AppError("Invalid Pagination Data", 411);
+  }
+
+  if (limit > 50) {
+    throw new AppError("Invalid Pagination Data", 411);
+  }
 
   const totalUserCount = await prisma.user.count();
   let allUsers;
@@ -139,7 +153,9 @@ const promoteUserRole = async (req: Request, res: Response) => {
 
 const delteUserById = async (req: Request, res: Response) => {
   const userId = Number(req.params.id);
-
+if (!userId){
+    throw new AppError("Invalid Id", 400)
+  }
   try {
     await prisma.user.delete({
       where: {
@@ -162,7 +178,9 @@ const delteUserById = async (req: Request, res: Response) => {
 
 const deleteCurrentUser = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-
+if (!userId){
+    throw new AppError("Invalid Id", 400)
+  }
   try {
     await prisma.user.delete({
       where: {

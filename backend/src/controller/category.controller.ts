@@ -12,6 +12,10 @@ const getCategories = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
 
+  if (limit > 50) {
+    throw new AppError("Invalid Pagination Data", 411);
+  }
+
   if (page <= 0 || limit <= 0) {
     throw new AppError("Invalid Pagination Data", 411);
   }
@@ -47,9 +51,13 @@ const getCategories = async (req: Request, res: Response) => {
 const getCategoryById = async (req: Request, res: Response) => {
   const categoryId = Number(req.params.id);
 
+  if (!categoryId) {
+    throw new AppError("Invalid Id", 400);
+  }
+
   let category;
   try {
-    category = await prisma.category.findUnique({
+    category = await prisma.category.findUniqueOrThrow({
       where: {
         id: categoryId,
       },
@@ -104,7 +112,9 @@ const createCategory = async (req: Request, res: Response) => {
 const updateCategory = async (req: Request, res: Response) => {
   const data: updateCategoryInput = req.body;
   const categoryId = Number(req.params.id);
-
+  if (!categoryId) {
+    throw new AppError("Invalid Id", 400);
+  }
   let updatedCategory;
   try {
     updatedCategory = await prisma.category.update({
@@ -122,12 +132,12 @@ const updateCategory = async (req: Request, res: Response) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record already exists
       if (error.code == "P2002") {
-        throw new AppError("Product already exists", 409);
+        throw new AppError("Category already exists", 409);
       }
 
       // Record not found
       if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
+        throw new AppError("Category Not Found", 404);
       }
     }
     console.error(error);
@@ -141,7 +151,9 @@ const updateCategory = async (req: Request, res: Response) => {
 
 const deleteCategroy = async (req: Request, res: Response) => {
   const categoryId = Number(req.params.id);
-
+if (!categoryId){
+    throw new AppError("Invalid Id", 400)
+  }
   try {
     await prisma.category.delete({
       where: {
@@ -152,7 +164,7 @@ const deleteCategroy = async (req: Request, res: Response) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record not found
       if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
+        throw new AppError("Category Not Found", 404);
       }
     }
     console.error(error);
