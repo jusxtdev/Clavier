@@ -10,6 +10,15 @@ The project is being developed backend-first as a learning and portfolio project
   - pagination
   - and password reset emails.
 
+## IMPORTANT -- Note on AI Usage
+- As this project is part of my learning process, I use ai in a selective way
+- I use AI for following things
+  - Writing Tests
+  - Writing Styles (Tailwind CSS etc)
+- I do **not** use AI for
+  - Writing core backend Logic
+  - Writing Components / State logic in frontend etc
+
 ## Tech Stack
 
 - Node.js + Express 5
