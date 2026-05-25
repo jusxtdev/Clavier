@@ -99,6 +99,7 @@ describe("/api/products", () => {
       description: "Lightweight shoe",
       price: 99.99,
       stock: 25,
+      categories: ["Shoes", "Fitness"],
       images: "shoe.jpg",
     };
 
@@ -129,11 +130,28 @@ describe("/api/products", () => {
     expect(mockProductController.createProduct).not.toHaveBeenCalled();
   });
 
+  it("rejects create payloads with invalid categories", async () => {
+    const app = await createTestApp();
+
+    const response = await request(app).post("/api/products").send({
+      title: "Running Shoe",
+      description: "Lightweight shoe",
+      price: 99.99,
+      stock: 25,
+      categories: "Shoes",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe(false);
+    expect(mockProductController.createProduct).not.toHaveBeenCalled();
+  });
+
   it("passes valid update requests to ProductController.updateProduct", async () => {
     const app = await createTestApp();
     const payload = {
       price: 79.99,
       stock: 30,
+      categories: ["Sale"],
     };
 
     const response = await request(app).patch("/api/products/7").send(payload);
@@ -154,6 +172,18 @@ describe("/api/products", () => {
     const response = await request(app)
       .patch("/api/products/7")
       .send({ stock: -1 });
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe(false);
+    expect(mockProductController.updateProduct).not.toHaveBeenCalled();
+  });
+
+  it("rejects update payloads with invalid categories", async () => {
+    const app = await createTestApp();
+
+    const response = await request(app)
+      .patch("/api/products/7")
+      .send({ categories: [123] });
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe(false);
