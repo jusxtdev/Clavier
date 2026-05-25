@@ -127,15 +127,38 @@ const updateProductById = async (
   productId: number,
   data: UpdateProductInput,
 ) => {
+  const categories = await CategoryService.createAndFetchCategories(data.categories)
+
+  delete data.categories
+
   let updatedProduct;
   try {
     updatedProduct = await prisma.product.update({
       where: {
         id: productId,
       },
-      // ! wrote this for now to not raise errors, come back after re-writing to Create Product service
       data: {
         title: data.title,
+        description: data.description,
+        price: data.price,
+        stock: data.stock,
+        images: data.images,
+        categories: {
+          create: categories,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        stock: true,
+        images: true,
+        categories: {
+          select: {
+            category: true,
+          },
+        },
       },
     });
   } catch (error) {

@@ -56,6 +56,7 @@ const createCategory = async (req: Request, res: Response) => {
 
 const updateCategory = async (req: Request, res: Response) => {
   const data: updateCategoryInput = req.body;
+
   const categoryId = Number(req.params.id);
   if (!categoryId) {
     throw new AppError("Invalid Id", 400);
