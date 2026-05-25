@@ -25,7 +25,7 @@ model Product {
 
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 }
 enum Role {
   ADMIN
@@ -43,7 +43,7 @@ model User {
   reset_tokens Password_reset_token[]
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 }
 
 model Password_reset_token {
@@ -63,7 +63,7 @@ model Category {
   products CategoriesOnProducts[]
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 }
 
 model CategoriesOnProducts {

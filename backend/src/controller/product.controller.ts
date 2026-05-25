@@ -8,16 +8,17 @@ import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
 
 const getProducts = async (req: Request, res: Response) => {
+  // pagination query params
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
-
   if (page <= 0 || limit <= 0) {
     throw new AppError("Invalid Pagination Data", 422);
   }
-
   if (limit > 50) {
     throw new AppError("Invalid Pagination Data", 411);
   }
+
+  // 
 
   let { allProducts, totalProductsCount } = await ProductService.getAllProducts(
     page,
@@ -57,6 +58,7 @@ const getProductById = async (req: Request, res: Response) => {
 
 const createProduct = async (req: Request, res: Response) => {
   const data: CreateProductInput = req.body;
+
 
   // create new Product
   const newProduct = await ProductService.createProduct(data);

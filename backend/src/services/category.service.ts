@@ -55,6 +55,31 @@ const getCategoryById = async (categoryId: number) => {
   return category;
 };
 
+const getCategoryByTitle = async (title: string) => {
+  title = title.toLowerCase();
+
+  let category;
+  try {
+    category = await prisma.category.findUniqueOrThrow({
+      where: {
+        title: title,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        return null;
+      }
+    }
+
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
+  }
+
+  return category;
+};
+
 const createCategory = async (data: newCategoryInput) => {
   let newCategory;
   try {
@@ -132,12 +157,64 @@ const deleteCategoryById = async (categoryId: number) => {
   }
 };
 
+const createAndFetchCategories = async (categories: string[] | undefined) => {
+  /*
+  This function returns an array used to connect categories to products table
+  example return object -
+    [
+      {
+          tag: {
+            connect: { id: 3}
+            },
+      },
+      {
+          tag: {
+            connect: { id: 5}
+            },
+      },
+      
+    ]
+  */
+
+  if (!categories) return undefined; // prisma ignores undefined
+
+  let connnectingArray = [];
+
+  // loop through categories
+  for (let categoryTitle of categories) {
+    let categoryId: number;
+
+    const exists = await getCategoryByTitle(categoryTitle);
+
+    // if category not exists, create and fetch it
+    if (!exists) {
+      const newCategory = await createCategory({ title: categoryTitle });
+      categoryId = newCategory.id;
+    } else {
+      // else extract the id from the existing one
+      categoryId = exists.id;
+    }
+
+    // append connecting object to the array function returns
+    connnectingArray.push({
+      category: {
+        connect: {
+          id: categoryId,
+        },
+      },
+    });
+  }
+  return connnectingArray
+};
+
 const CategoryService = {
   getAllCategories,
   getCategoryById,
   createCategory,
   updateCategoryById,
   deleteCategoryById,
+  createAndFetchCategories,
+  getCategoryByTitle,
 };
 
 export default CategoryService;

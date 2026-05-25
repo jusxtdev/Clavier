@@ -27,7 +27,7 @@ const addNewToken = async (
 const findTokenByUserId = async (userId: number) => {
   let tokenRow;
   try {
-    tokenRow = await prisma.password_reset_token.findFirst({
+    tokenRow = await prisma.password_reset_token.findFirstOrThrow({
       where: {
         userId: Number(userId),
       },

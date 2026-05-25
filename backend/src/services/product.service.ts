@@ -5,6 +5,7 @@ import {
   UpdateProductInput,
 } from "@/schema/product.schema.js";
 import { AppError } from "@/utils/AppError.js";
+import CategoryService from "./category.service.js";
 
 const getAllProducts = async (page: number, limit: number) => {
   let totalProductsCount;
@@ -19,9 +20,14 @@ const getAllProducts = async (page: number, limit: number) => {
         description: true,
         price: true,
         stock: true,
-        category: true,
         images: true,
+        categories: {
+          select: {
+            category: true,
+          },
+        },
       },
+
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -46,8 +52,12 @@ const getProductById = async (productId: number) => {
         description: true,
         price: true,
         stock: true,
-        category: true,
         images: true,
+        categories: {
+          select: {
+            category: true,
+          },
+        },
       },
     });
   } catch (error) {
@@ -67,6 +77,11 @@ const getProductById = async (productId: number) => {
 
 const createProduct = async (data: CreateProductInput) => {
   let newProduct;
+
+  const categories = await CategoryService.createAndFetchCategories(
+    data.categories,
+  );
+
   try {
     newProduct = await prisma.product.create({
       data: {
@@ -75,6 +90,22 @@ const createProduct = async (data: CreateProductInput) => {
         price: data.price,
         stock: data.stock,
         images: data.images,
+        categories: {
+          create: categories,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        stock: true,
+        images: true,
+        categories: {
+          select: {
+            category: true,
+          },
+        },
       },
     });
   } catch (error) {
@@ -102,7 +133,10 @@ const updateProductById = async (
       where: {
         id: productId,
       },
-      data: data,
+      // ! wrote this for now to not raise errors, come back after re-writing to Create Product service
+      data: {
+        title: data.title,
+      },
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -124,8 +158,8 @@ const updateProductById = async (
   return updatedProduct;
 };
 
-const deleteProductById = async (productId : number) => {
-    try {
+const deleteProductById = async (productId: number) => {
+  try {
     await prisma.product.delete({
       where: {
         id: productId,
@@ -142,15 +176,15 @@ const deleteProductById = async (productId : number) => {
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
-  return 
-}
+  return;
+};
 
 const ProductService = {
   getAllProducts,
   getProductById,
   createProduct,
   updateProductById,
-  deleteProductById
+  deleteProductById,
 };
 
 export default ProductService;
