@@ -3,7 +3,7 @@
 An in-progress e-commerce backend built with **Node.js**, **Express**, **TypeScript**, **PostgreSQL**, **Prisma**, **JWT cookies**, bcrypt, **Zod validation**, and Nodemailer.
 
 The project is being developed backend-first as a learning and portfolio project.
-- Current work covers 
+- Current work covers
   - authentication, users, products, categories
   - role-based access control
   - validation
@@ -29,6 +29,7 @@ The project is being developed backend-first as a learning and portfolio project
 - JWT stored in HTTP cookies
 - bcrypt password hashing
 - Nodemailer for password reset emails
+- Vitest + Supertest for tests
 - pnpm
 
 ## Project Structure
@@ -40,7 +41,10 @@ The project is being developed backend-first as a learning and portfolio project
     ├── prisma
     │   ├── migrations
     │   └── schema.prisma
+    ├── test
+    ├── vitest.config.ts
     └── src
+        ├── app.ts
         ├── config
         ├── controller
         ├── middleware
@@ -58,10 +62,12 @@ The project is being developed backend-first as a learning and portfolio project
 - JWT authentication middleware
 - Role-based authorization with `ADMIN`, `STAFF`, and `BUYER`
 - User profile, admin user listing, role promotion, and deletion
-- Product CRUD with pagination
+- Product CRUD with pagination and category assignment
 - Category CRUD with pagination
+- Service layer for products, categories, users, and reset tokens
 - Zod request validation
 - Centralized error handling
+- API tests with Vitest and Supertest
 - Prisma models and migrations for users, products, categories, product-category joins, and reset tokens
 
 ## Requirements
@@ -103,6 +109,12 @@ Start the development server:
 
 ```bash
 pnpm dev
+```
+
+Run tests:
+
+```bash
+pnpm test
 ```
 
 The API is mounted at:
@@ -162,6 +174,7 @@ Example product body:
   "description": "Compact mechanical keyboard",
   "price": 79.99,
   "stock": 25,
+  "categories": ["keyboards", "accessories"],
   "images": "https://example.com/keyboard.jpg"
 }
 ```
@@ -219,12 +232,12 @@ BUYER
 
 ## Development Notes
 
-This project is still in progress. The roadmap includes future work such as filtering, search, sorting, cart logic, Redis, Docker, and other production-oriented improvements.
+This project is still in progress. Planned future work includes filtering, search, sorting, cart logic, Redis, Docker, and other production-oriented improvements.
 
 Current implementation notes:
 
 - Product and category listing routes are protected behind authentication.
 - Password reset emails use Nodemailer with Gmail service credentials.
 - Prisma client output is configured to `backend/src/generated/prisma`.
-- There is currently one npm script: `pnpm dev`.
-- Tests, Docker configuration, seed scripts, and production build scripts have not been added yet.
+- Available scripts are `pnpm dev` and `pnpm test`.
+- Docker configuration, seed scripts, and production build scripts have not been added yet.
