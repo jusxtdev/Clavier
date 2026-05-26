@@ -3,7 +3,7 @@ import { Prisma, Role } from "@/generated/prisma/client.js";
 import { signupInput } from "@/schema/auth.schema.js";
 import { AppError } from "@/utils/AppError.js";
 
-const getAllUsers = async (page: number, limit: number) => {
+const getAllUsers = async (page: number, limit: number, where : any) => {
   let totalUserCount;
   let allUsers;
   try {
@@ -14,6 +14,7 @@ const getAllUsers = async (page: number, limit: number) => {
         email: true,
         role: true,
       },
+      where,
       skip: (page - 1) * limit,
       take: limit,
     });

@@ -11,7 +11,6 @@ import { Request, Response } from "express";
 let VALID_SORT_FIELDS = ["price", "stock", "title", "createdAt"];
 let VALID_SORT_ORDER = ["asc", "desc"];
 
-let VALID_FILTER_FIELDS = ["minPrice", "maxPrice", "inStock", "category"];
 
 const getProducts = async (req: Request, res: Response) => {
   // pagination query params

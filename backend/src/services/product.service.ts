@@ -6,7 +6,6 @@ import {
 } from "@/schema/product.schema.js";
 import { AppError } from "@/utils/AppError.js";
 import CategoryService from "./category.service.js";
-import { title } from "node:process";
 
 const getAllProducts = async (
   page: number,

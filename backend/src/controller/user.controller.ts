@@ -1,7 +1,4 @@
-import { prisma } from "@/config/db.js";
-import { Prisma } from "@/generated/prisma/client.js";
 import { promoteUserRoleInput } from "@/schema/user.schema.js";
-import ProductService from "@/services/product.service.js";
 import UserService from "@/services/user.service.js";
 import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
@@ -33,6 +30,8 @@ const getUserById = async (req: Request, res: Response) => {
     .json(jsonResponse(true, `User with id ${userId}`, user));
 };
 
+const VALID_ROLES = ["BUYER", "STAFF", "ADMIN"];
+
 const getUsers = async (req: Request, res: Response) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
@@ -45,9 +44,29 @@ const getUsers = async (req: Request, res: Response) => {
     throw new AppError("Invalid Pagination Data", 411);
   }
 
+  const where: any = {};
+
+  // filter by role
+  let role = req.query.role || null;
+  if (role !== null) {
+    role = String(role).toUpperCase()
+    if (!VALID_ROLES.includes(role)) {
+      throw new AppError("Invalid Role Field", 400);
+    }
+    where.role = role;
+  }
+
+  // search by name
+  let name = req.query.name || null
+  if (name) {
+    name = String(name).toLowerCase()
+    where.name = {contains : name, mode : "insensitive"}
+  }
+
   const { allUsers, totalUserCount } = await UserService.getAllUsers(
     page,
     limit,
+    where,
   );
 
   const paginationData = {
