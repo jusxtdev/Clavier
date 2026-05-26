@@ -12,6 +12,7 @@ const getAllProducts = async (
   limit: number,
   sortBy: string,
   sortOrder: string,
+  where : any
 ) => {
   let totalProductsCount;
   let allProducts;
@@ -32,6 +33,7 @@ const getAllProducts = async (
           },
         },
       },
+      where,
       orderBy: {
         [sortBy]: sortOrder
       },
