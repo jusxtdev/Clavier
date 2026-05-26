@@ -17,7 +17,7 @@ const getAllProducts = async (
   let totalProductsCount;
   let allProducts;
   try {
-    totalProductsCount = await prisma.product.count();
+    totalProductsCount = await prisma.product.count({where});
 
     allProducts = await prisma.product.findMany({
       select: {

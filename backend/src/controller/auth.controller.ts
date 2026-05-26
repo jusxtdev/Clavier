@@ -97,7 +97,7 @@ const forgotpass = async (req: Request, res: Response) => {
   // store hashed token in DB
   const userId = existingUser!.id;
   const tokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 60 mins
-  
+
   const newToken = await ResetTokenService.addNewToken(
     hashedToken,
     tokenExpiry,
@@ -122,6 +122,11 @@ const forgotpass = async (req: Request, res: Response) => {
 const resetpass = async (req: Request, res: Response) => {
   const [userId, resetToken] = String(req.query.token).split(".");
   const { password }: resetpassInput = req.body;
+
+  // verify reset token
+  if (typeof resetToken !== "string") {
+    throw new AppError("Invalid Token", 401);
+  }
 
   // compare the token and check expiry
   const tokenRow = await ResetTokenService.findTokenByUserId(Number(userId));

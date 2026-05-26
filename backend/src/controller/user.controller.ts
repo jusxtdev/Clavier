@@ -33,8 +33,12 @@ const getUserById = async (req: Request, res: Response) => {
 const VALID_ROLES = ["BUYER", "STAFF", "ADMIN"];
 
 const getUsers = async (req: Request, res: Response) => {
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 10;
+  const page = req.query.page === undefined ? 1 : Number(req.query.page);
+  const limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
+
+  if (!Number.isInteger(page) || !Number.isInteger(limit)) {
+    throw new AppError("Invalid Pagination Data", 411);
+  }
 
   if (page <= 0 || limit <= 0) {
     throw new AppError("Invalid Pagination Data", 411);
@@ -49,7 +53,7 @@ const getUsers = async (req: Request, res: Response) => {
   // filter by role
   let role = req.query.role || null;
   if (role !== null) {
-    role = String(role).toUpperCase()
+    role = String(role).toUpperCase();
     if (!VALID_ROLES.includes(role)) {
       throw new AppError("Invalid Role Field", 400);
     }
@@ -57,10 +61,10 @@ const getUsers = async (req: Request, res: Response) => {
   }
 
   // search by name
-  let name = req.query.name || null
+  let name = req.query.name || null;
   if (name) {
-    name = String(name).toLowerCase()
-    where.name = {contains : name, mode : "insensitive"}
+    name = String(name).toLowerCase();
+    where.name = { contains: name, mode: "insensitive" };
   }
 
   const { allUsers, totalUserCount } = await UserService.getAllUsers(

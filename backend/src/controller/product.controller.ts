@@ -11,11 +11,15 @@ import { Request, Response } from "express";
 let VALID_SORT_FIELDS = ["price", "stock", "title", "createdAt"];
 let VALID_SORT_ORDER = ["asc", "desc"];
 
-
 const getProducts = async (req: Request, res: Response) => {
   // pagination query params
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 10;
+  const page = req.query.page === undefined ? 1 : Number(req.query.page);
+  const limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
+
+  if (!Number.isInteger(page) || !Number.isInteger(limit)) {
+    throw new AppError("Invalid Pagination Data", 411);
+  }
+
   if (page <= 0 || limit <= 0) {
     throw new AppError("Invalid Pagination Data", 422);
   }
@@ -37,18 +41,18 @@ const getProducts = async (req: Request, res: Response) => {
   // filtering query params
   let { maxPrice, minPrice, minStock, maxStock, category } = req.query;
   const where: any = {};
-  if (maxPrice) {
-    where.price = { lte: Number(maxPrice) };
+  if (maxPrice || minPrice) {
+    where.price = {};
+    if (minPrice) where.price.gte = Number(minPrice);
+    if (maxPrice) where.price.lte = Number(maxPrice);
   }
-  if (minPrice) {
-    where.price = { gte: Number(minPrice) };
+
+  if (maxStock || minStock) {
+    where.stock = {};
+    if (minStock) where.stock.gte = Number(minStock);
+    if (maxStock) where.stock.lte = Number(maxStock);
   }
-  if (minStock) {
-    where.stock = { gte: Number(minStock) };
-  }
-  if (maxStock) {
-    where.stock = { lte: Number(maxStock) };
-  }
+
   if (category) {
     category = String(category).toLowerCase();
     const exists = await CategoryService.getCategoryByTitle(String(category));

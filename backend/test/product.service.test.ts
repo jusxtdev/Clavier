@@ -46,15 +46,32 @@ describe("ProductService", () => {
     ];
     mockPrisma.product.count.mockResolvedValue(1);
     mockPrisma.product.findMany.mockResolvedValue(products);
+    const where = {
+      price: {
+        gte: 10,
+        lte: 100,
+      },
+    };
 
-    const result = await ProductService.getAllProducts(2, 5);
+    const result = await ProductService.getAllProducts(
+      2,
+      5,
+      "price",
+      "asc",
+      where,
+    );
 
     expect(result).toEqual({
       allProducts: products,
       totalProductsCount: 1,
     });
+    expect(mockPrisma.product.count).toHaveBeenCalledWith({ where });
     expect(mockPrisma.product.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
+        where,
+        orderBy: {
+          price: "asc",
+        },
         skip: 5,
         take: 5,
         select: expect.objectContaining({
