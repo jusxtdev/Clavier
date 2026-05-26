@@ -37,29 +37,37 @@ const getProducts = async (req: Request, res: Response) => {
 
   // filtering query params
   let { maxPrice, minPrice, minStock, maxStock, category } = req.query;
-  const where : any = {}
+  const where: any = {};
   if (maxPrice) {
-    where.price = {lte : Number(maxPrice)}
+    where.price = { lte: Number(maxPrice) };
   }
   if (minPrice) {
-    where.price = {gte : Number(minPrice)}
+    where.price = { gte: Number(minPrice) };
   }
   if (minStock) {
-    where.stock = {gte : Number(minStock)}
+    where.stock = { gte: Number(minStock) };
   }
   if (maxStock) {
-    where.stock = {lte : Number(maxStock)}
+    where.stock = { lte: Number(maxStock) };
   }
   if (category) {
-    category = String(category).toLowerCase() 
-    const exists = await CategoryService.getCategoryByTitle(String(category))
-    if (exists){
-      where.categories = {some : {
-        category : {
-          title : String(category)
-        }
-      }}
+    category = String(category).toLowerCase();
+    const exists = await CategoryService.getCategoryByTitle(String(category));
+    if (exists) {
+      where.categories = {
+        some: {
+          category: {
+            title: String(category),
+          },
+        },
+      };
     }
+  }
+
+  // search query params (by title and description)
+  const searchStr = String(req.query.search || "");
+  if (searchStr) {
+    where.title = { contains: searchStr, mode: "insensitive" };
   }
 
   let { allProducts, totalProductsCount } = await ProductService.getAllProducts(
@@ -67,7 +75,7 @@ const getProducts = async (req: Request, res: Response) => {
     limit,
     sortBy,
     sortOrder,
-    where
+    where,
   );
 
   const paginationData = {
