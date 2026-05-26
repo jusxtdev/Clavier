@@ -7,6 +7,9 @@ import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
 
+let VALID_SORT_FIELDS = ["price", "stock", "title", "createdAt"]
+let VALID_SORT_ORDER = ["asc", "desc"]
+
 const getProducts = async (req: Request, res: Response) => {
   // pagination query params
   const page = Number(req.query.page) || 1;
@@ -18,11 +21,19 @@ const getProducts = async (req: Request, res: Response) => {
     throw new AppError("Invalid Pagination Data", 411);
   }
 
-  // 
+  // Sorting query params
+  const sortBy = String(req.query.sortBy || "createdAt");
+  const sortOrder = String(req.query.sortOrder || "desc");
+
+  if (!VALID_SORT_FIELDS.includes(sortBy) || !VALID_SORT_ORDER.includes(sortOrder)){
+    throw new AppError("Invalid Sort Fields", 400)
+  }
 
   let { allProducts, totalProductsCount } = await ProductService.getAllProducts(
     page,
     limit,
+    sortBy,
+    sortOrder
   );
 
   const paginationData = {

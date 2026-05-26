@@ -7,7 +7,12 @@ import {
 import { AppError } from "@/utils/AppError.js";
 import CategoryService from "./category.service.js";
 
-const getAllProducts = async (page: number, limit: number) => {
+const getAllProducts = async (
+  page: number,
+  limit: number,
+  sortBy: string,
+  sortOrder: string,
+) => {
   let totalProductsCount;
   let allProducts;
   try {
@@ -26,6 +31,9 @@ const getAllProducts = async (page: number, limit: number) => {
             category: true,
           },
         },
+      },
+      orderBy: {
+        [sortBy]: sortOrder
       },
 
       skip: (page - 1) * limit,
@@ -127,9 +135,11 @@ const updateProductById = async (
   productId: number,
   data: UpdateProductInput,
 ) => {
-  const categories = await CategoryService.createAndFetchCategories(data.categories)
+  const categories = await CategoryService.createAndFetchCategories(
+    data.categories,
+  );
 
-  delete data.categories
+  delete data.categories;
 
   let updatedProduct;
   try {
