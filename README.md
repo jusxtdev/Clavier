@@ -1,14 +1,9 @@
 # E-Commerce Backend
 
-An in-progress e-commerce backend built with **Node.js**, **Express**, **TypeScript**, **PostgreSQL**, **Prisma**, **JWT cookies**, bcrypt, **Zod validation**, and Nodemailer.
+An in-progress e-commerce backend built with **Node.js**, **Express**, **TypeScript**, **PostgreSQL**, **Prisma**, **JWT cookies**, bcrypt, **Zod validation**, Nodemailer, and Vitest.
 
 The project is being developed backend-first as a learning and portfolio project.
-- Current work covers
-  - authentication, users, products, categories
-  - role-based access control
-  - validation
-  - pagination
-  - and password reset emails.
+- Current work covers authentication, users, products, categories, role-based access control, validation, pagination, filtering, sorting, search, tests, and password reset emails.
 
 ## IMPORTANT -- Note on AI Usage
 - As this project is part of my learning process, I use ai in a selective way
@@ -58,16 +53,17 @@ The project is being developed backend-first as a learning and portfolio project
 ## Current Features
 
 - Auth: signup, login, logout
-- Password reset token generation and email delivery
+- Password reset token generation, hashed token storage, and email delivery
 - JWT authentication middleware
 - Role-based authorization with `ADMIN`, `STAFF`, and `BUYER`
-- User profile, admin user listing, role promotion, and deletion
-- Product CRUD with pagination and category assignment
+- User profile, admin user listing, filtering/search, role promotion, and deletion
+- Product CRUD with pagination, filtering, sorting, search, and category assignment
 - Category CRUD with pagination
 - Service layer for products, categories, users, and reset tokens
 - Zod request validation
 - Centralized error handling
-- API tests with Vitest and Supertest
+- API/router tests with Vitest and Supertest
+- Controller and service unit tests with mocked dependencies
 - Prisma models and migrations for users, products, categories, product-category joins, and reset tokens
 
 ## Requirements
@@ -117,6 +113,13 @@ Run tests:
 pnpm test
 ```
 
+Run selected tests:
+
+```bash
+pnpm vitest test/product.service.test.ts --run
+pnpm vitest test/auth.controller.test.ts --run
+```
+
 The API is mounted at:
 
 ```txt
@@ -154,17 +157,52 @@ All user routes require authentication.
 | `PATCH` | `/api/users/promote` | Update a user's role | `ADMIN` |
 | `DELETE` | `/api/users/:id` | Delete user by ID | `ADMIN` |
 
+Supported user list query parameters:
+
+```txt
+GET /api/users?page=1&limit=10
+GET /api/users?role=STAFF
+GET /api/users?name=ali
+```
+
 ### Products
 
 All product routes currently require authentication.
 
 | Method | Route | Description | Roles |
 | --- | --- | --- | --- |
-| `GET` | `/api/products?page=1&limit=10` | List products | Any authenticated user |
+| `GET` | `/api/products?page=1&limit=10` | List products with pagination/filtering/sorting/search | Any authenticated user |
 | `GET` | `/api/products/:id` | Get product by ID | Any authenticated user |
 | `POST` | `/api/products` | Create product | `ADMIN` |
 | `PATCH` | `/api/products/:id` | Update product | `ADMIN`, `STAFF` |
 | `DELETE` | `/api/products/:id` | Delete product | `ADMIN` |
+
+Supported product list query parameters:
+
+```txt
+GET /api/products?page=1&limit=10
+GET /api/products?minPrice=10&maxPrice=100
+GET /api/products?minStock=1&maxStock=25
+GET /api/products?category=keyboards
+GET /api/products?search=wireless
+GET /api/products?sortBy=price&sortOrder=asc
+```
+
+Allowed `sortBy` values:
+
+```txt
+price
+stock
+title
+createdAt
+```
+
+Allowed `sortOrder` values:
+
+```txt
+asc
+desc
+```
 
 Example product body:
 
@@ -212,6 +250,39 @@ GET /api/users?page=1&limit=10
 
 The current maximum `limit` is `50`.
 
+Responses include pagination metadata:
+
+```json
+{
+  "status": true,
+  "msg": "All products fetched successfully",
+  "data": [],
+  "page": 1,
+  "limit": 10,
+  "totalItems": 0
+}
+```
+
+## Testing
+
+The test suite currently includes:
+
+- Router tests for auth, users, products, and categories
+- Product service tests for Prisma query shape and category relations
+- Controller tests for auth, product list query handling, and user list query handling
+
+Some tests are intentionally strict around edge cases. For example, they should fail if:
+
+- non-numeric pagination silently falls back to defaults
+- min/max filters overwrite each other
+- filtered product counts ignore the active `where` clause
+- malformed reset-password tokens produce a raw runtime error instead of an application error
+- reset-password emails leak hashed tokens instead of sending the raw one-time token
+
+## Roadmap
+
+See [ROADMAP.md](./ROADMAP.md) for the learning-focused backend roadmap. Current implementation is around phases 1-3: foundation, products, authentication/users, categories, filtering, sorting, and search. Later work includes cart logic, Redis, Docker, and more production-oriented improvements.
+
 ## Data Model
 
 Current Prisma models:
@@ -232,7 +303,7 @@ BUYER
 
 ## Development Notes
 
-This project is still in progress. Planned future work includes filtering, search, sorting, cart logic, Redis, Docker, and other production-oriented improvements.
+This project is still in progress. Planned future work includes cart logic, Redis, Docker, and other production-oriented improvements.
 
 Current implementation notes:
 
