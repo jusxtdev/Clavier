@@ -47,6 +47,10 @@ const login = async (req: Request, res: Response) => {
   // check if user exists
   const user = await UserService.findUserByEmail(data.email);
 
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
   // check password
   const isValidPassword = await bcrypt.compare(data.password, user!.password);
   if (!isValidPassword) {
@@ -77,6 +81,12 @@ const forgotpass = async (req: Request, res: Response) => {
   // check if email exists
   let existingUser = await UserService.findUserByEmail(email);
 
+  if (!existingUser) {
+    return res
+      .status(200)
+      .json(jsonResponse(true, "Password Reset link sent to your email"));
+  }
+
   // generate token
   const resetToken = await generateResetToken();
 
@@ -87,7 +97,7 @@ const forgotpass = async (req: Request, res: Response) => {
   // store hashed token in DB
   const userId = existingUser!.id;
   const tokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 60 mins
-
+  
   const newToken = await ResetTokenService.addNewToken(
     hashedToken,
     tokenExpiry,
@@ -100,7 +110,7 @@ const forgotpass = async (req: Request, res: Response) => {
   const baseFrontendURL = env.FRONTEND_URL || `http://localhost:${env.PORT}`;
   const resetLink =
     baseFrontendURL +
-    `/api/auth/resetpass?token=${newToken.userId}.${newToken.token}`;
+    `/api/auth/resetpass?token=${newToken.userId}.${resetToken}`;
   await passwordResetEmail(email, resetLink);
 
   // repsond
@@ -140,7 +150,10 @@ const resetpass = async (req: Request, res: Response) => {
   );
 
   // delete the token after updating the password
-  await ResetTokenService.deleteTokenByUserIdAndToken(Number(userId), tokenRow!.token)
+  await ResetTokenService.deleteTokenByUserIdAndToken(
+    Number(userId),
+    tokenRow!.token,
+  );
 
   res
     .status(200)

@@ -78,7 +78,7 @@ const deleteCategroy = async (req: Request, res: Response) => {
   }
   await CategoryService.deleteCategoryById(categoryId);
 
-  res.status(204).json(jsonResponse(true, "Deleted Successfully"));
+  res.status(204).send();
 };
 
 const CategoryController = {

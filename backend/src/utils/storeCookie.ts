@@ -6,6 +6,7 @@ const storeCookie = (title: string, data: any, res: Response) => {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24 * 7,
+    sameSite: "strict",
   });
 };
 

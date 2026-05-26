@@ -39,7 +39,7 @@ const findTokenByUserId = async (userId: number) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record not found
       if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
+        throw new AppError("Token Not Found", 404);
       }
     }
     console.error(error);

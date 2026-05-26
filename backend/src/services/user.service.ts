@@ -45,7 +45,7 @@ const findUserByEmail = async (email: string) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record not found
       if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
+        return null;
       }
     }
     console.error(error);
@@ -101,7 +101,7 @@ const createNewUser = async (data: signupInput, hashedPass: string) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record already exists
       if (error.code == "P2002") {
-        throw new AppError("Product already exists", 409);
+        throw new AppError("User already exists", 409);
       }
       console.error(error);
       throw new AppError("Internal Server Error", 500);

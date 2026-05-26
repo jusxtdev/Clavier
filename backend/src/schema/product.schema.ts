@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const newProduct = z.object({
-  title: z.string().max(200),
+  title: z.string().max(200).min(3),
   description: z.string(),
   price: z.float64().min(1),
   stock: z.int().min(0),
