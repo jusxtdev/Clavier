@@ -66,3 +66,13 @@ export type Category = Prisma.CategoryModel
  * 
  */
 export type CategoriesOnProducts = Prisma.CategoriesOnProductsModel
+/**
+ * Model Cart
+ * 
+ */
+export type Cart = Prisma.CartModel
+/**
+ * Model CartItem
+ * 
+ */
+export type CartItem = Prisma.CartItemModel

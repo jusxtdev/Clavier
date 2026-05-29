@@ -22,6 +22,7 @@ model Product {
 
   // relations
   categories CategoriesOnProducts[]
+  cartItems CartItem[]
 
 
   createdAt DateTime @default(now())
@@ -41,6 +42,7 @@ model User {
   role Role @default(BUYER)
 
   reset_tokens Password_reset_token[]
+  cart Cart?
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -75,4 +77,24 @@ model CategoriesOnProducts {
 
   assignedAt DateTime @default(now())
   @@id([productId, categoryId])
+}
+
+model Cart {
+  id Int @id @default(autoincrement())
+  userId Int @unique
+  user User @relation(fields: [userId], references: [id])
+
+  cartItems CartItem[]
+}
+
+model CartItem {
+  cartId Int 
+  cart Cart @relation(fields: [cartId], references: [id])
+
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+
+  quantity Int
+
+  @@id([cartId, productId]) 
 }

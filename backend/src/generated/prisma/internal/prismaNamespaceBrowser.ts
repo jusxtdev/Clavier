@@ -55,7 +55,9 @@ export const ModelName = {
   User: 'User',
   Password_reset_token: 'Password_reset_token',
   Category: 'Category',
-  CategoriesOnProducts: 'CategoriesOnProducts'
+  CategoriesOnProducts: 'CategoriesOnProducts',
+  Cart: 'Cart',
+  CartItem: 'CartItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -128,6 +130,23 @@ export const CategoriesOnProductsScalarFieldEnum = {
 } as const
 
 export type CategoriesOnProductsScalarFieldEnum = (typeof CategoriesOnProductsScalarFieldEnum)[keyof typeof CategoriesOnProductsScalarFieldEnum]
+
+
+export const CartScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId'
+} as const
+
+export type CartScalarFieldEnum = (typeof CartScalarFieldEnum)[keyof typeof CartScalarFieldEnum]
+
+
+export const CartItemScalarFieldEnum = {
+  cartId: 'cartId',
+  productId: 'productId',
+  quantity: 'quantity'
+} as const
+
+export type CartItemScalarFieldEnum = (typeof CartItemScalarFieldEnum)[keyof typeof CartItemScalarFieldEnum]
 
 
 export const SortOrder = {
