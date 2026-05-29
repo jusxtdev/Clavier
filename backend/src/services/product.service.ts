@@ -74,7 +74,7 @@ const getProductById = async (productId: number) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record not found
       if (error.code == "P2025") {
-        throw new AppError("Product Not Found", 404);
+        return null
       }
     }
 
