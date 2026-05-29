@@ -10,6 +10,8 @@ router.use(authenticate)
 
 router.post('/items', validate(CartSchema.addToCartSchema), CartController.addToCart)
 
-router.get('/items', CartController.getCart)
+router.get('/', CartController.getCart)
+
+router.delete('/items/:id', CartController.deleteCartItem)
 
 export default router;

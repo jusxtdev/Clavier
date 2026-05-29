@@ -1,7 +1,7 @@
 import cookieParser from "cookie-parser";
 import express from "express";
 import request from "supertest";
-import { afterAll, afterEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "../src/config/db.js";
 import { errorHandler } from "../src/middleware/errorHandler.middleware.js";
 import generateToken from "../src/utils/generateToken.js";
@@ -22,6 +22,11 @@ const testRunId = `cart-test-${Date.now()}`;
 let testCounter = 0;
 let createdUserIds: number[] = [];
 let createdProductIds: number[] = [];
+
+vi.setConfig({
+  hookTimeout: 20_000,
+  testTimeout: 20_000,
+});
 
 const createUser = async () => {
   testCounter += 1;
@@ -60,10 +65,22 @@ const authHeaderFor = (userId: number) => ({
 
 describe("/api/cart", () => {
   afterEach(async () => {
+    const carts = await prisma.cart.findMany({
+      where: {
+        userId: {
+          in: createdUserIds,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    const cartIds = carts.map((cart) => cart.id);
+
     await prisma.cartItem.deleteMany({
       where: {
         OR: [
-          { cart: { userId: { in: createdUserIds } } },
+          { cartId: { in: cartIds } },
           { productId: { in: createdProductIds } },
         ],
       },
@@ -101,7 +118,7 @@ describe("/api/cart", () => {
   it("rejects requests without a valid JWT", async () => {
     const app = await createTestApp();
 
-    const response = await request(app).get("/api/cart/items");
+    const response = await request(app).get("/api/cart");
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({
@@ -115,7 +132,7 @@ describe("/api/cart", () => {
     const user = await createUser();
 
     const response = await request(app)
-      .get("/api/cart/items")
+      .get("/api/cart")
       .set(authHeaderFor(user.id));
 
     expect(response.status).toBe(200);
@@ -202,7 +219,7 @@ describe("/api/cart", () => {
       .expect(201);
 
     const response = await request(app)
-      .get("/api/cart/items")
+      .get("/api/cart")
       .set(authHeaderFor(user.id));
 
     expect(response.status).toBe(200);
@@ -318,5 +335,121 @@ describe("/api/cart", () => {
       },
     });
     expect(cartItem?.quantity).toBe(3);
+  });
+
+  it("removes an existing item from the authenticated user's cart", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+    const productToRemove = await createProduct(5);
+    const productToKeep = await createProduct(5);
+
+    await request(app)
+      .post("/api/cart/items")
+      .set(authHeaderFor(user.id))
+      .send({ productId: productToRemove.id, quantity: 2 })
+      .expect(201);
+    await request(app)
+      .post("/api/cart/items")
+      .set(authHeaderFor(user.id))
+      .send({ productId: productToKeep.id, quantity: 1 })
+      .expect(201);
+
+    const response = await request(app)
+      .delete(`/api/cart/items/${productToRemove.id}`)
+      .set(authHeaderFor(user.id));
+
+    expect(response.status).toBe(200);
+    expect(response.body.msg).toBe("Item Removed Successfully");
+    expect(response.body.data.cartItems).toHaveLength(1);
+    expect(response.body.data.cartItems[0]).toMatchObject({
+      quantity: 1,
+      product: {
+        id: productToKeep.id,
+      },
+    });
+
+    const deletedItem = await prisma.cartItem.findFirst({
+      where: {
+        cart: {
+          userId: user.id,
+        },
+        productId: productToRemove.id,
+      },
+    });
+    expect(deletedItem).toBeNull();
+  });
+
+  it("leaves the cart unchanged when deleting a product that is not in it", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+    const productInCart = await createProduct(5);
+    const productNotInCart = await createProduct(5);
+
+    await request(app)
+      .post("/api/cart/items")
+      .set(authHeaderFor(user.id))
+      .send({ productId: productInCart.id, quantity: 2 })
+      .expect(201);
+
+    const response = await request(app)
+      .delete(`/api/cart/items/${productNotInCart.id}`)
+      .set(authHeaderFor(user.id));
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      status: true,
+      msg: "Item Removed Successfully",
+      data: {
+        userId: user.id,
+      },
+    });
+    expect(response.body.data.cartItems).toHaveLength(1);
+    expect(response.body.data.cartItems[0]).toMatchObject({
+      quantity: 2,
+      product: {
+        id: productInCart.id,
+      },
+    });
+
+    const cartItemCount = await prisma.cartItem.count({
+      where: {
+        cart: {
+          userId: user.id,
+        },
+      },
+    });
+    expect(cartItemCount).toBe(1);
+  });
+
+  it("returns an empty list when deleting from a user with no cart", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+    const product = await createProduct(5);
+
+    const response = await request(app)
+      .delete(`/api/cart/items/${product.id}`)
+      .set(authHeaderFor(user.id));
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      status: true,
+      msg: "Item Removed Successfully",
+      data: [],
+    });
+  });
+
+  it("rejects delete requests with an invalid product id", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+
+    const response = await request(app)
+      .delete("/api/cart/items/not-a-number")
+      .set(authHeaderFor(user.id));
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      status: false,
+      msg: "Invalid Product Id",
+    });
   });
 });

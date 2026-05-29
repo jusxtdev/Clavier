@@ -5,7 +5,6 @@ import { AppError } from "@/utils/AppError.js";
 import ProductService from "./product.service.js";
 import CartItemService from "./cartItem.service.js";
 
-
 const getUserCart = async (userId: number) => {
   let cart;
   try {
@@ -18,6 +17,7 @@ const getUserCart = async (userId: number) => {
         userId: true,
         cartItems: {
           select: {
+            quantity : true,
             product: true,
           },
         },
@@ -49,6 +49,7 @@ const createCart = async (userId: number) => {
         userId: true,
         cartItems: {
           select: {
+            quantity : true,
             product: true,
           },
         },
@@ -117,6 +118,31 @@ const addToCart = async (userId: number, data: addToCartInput) => {
   return newItem;
 };
 
-const CartService = { addToCart, getUserCart };
+const removeFromCart = async (userId: number, productId: number) => {
+  // check if cart exists for user
+  const cart = await getUserCart(userId);
+  if (!cart) {
+    return [];
+  }
+
+  // get cart id
+  const cartId = cart.id;
+
+  // check if product exists
+  const productInCart = await CartItemService.productInCart(cartId, productId);
+  if (!productInCart) {
+    return cart;
+  }
+
+  // delete the cartItem
+  await CartItemService.deleteItem(cartId, productId);
+
+  // updated cart
+  const updatedCart = await getUserCart(userId);
+
+  return updatedCart;
+};
+
+const CartService = { addToCart, getUserCart, removeFromCart };
 
 export default CartService;
