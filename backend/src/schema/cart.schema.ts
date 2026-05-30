@@ -6,8 +6,12 @@ const addToCartSchema = z.object({
 });
 export type addToCartInput = z.infer<typeof addToCartSchema>
 
+const updateCartSchema = addToCartSchema
+export type updateCartInput = z.infer<typeof updateCartSchema>
+
 const CartSchema = {
   addToCartSchema,
+  updateCartSchema
 };
 
 export default CartSchema;

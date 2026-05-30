@@ -12,6 +12,10 @@ router.post('/items', validate(CartSchema.addToCartSchema), CartController.addTo
 
 router.get('/', CartController.getCart)
 
+router.patch('/', validate(CartSchema.updateCartSchema), CartController.updateCart)
+
 router.delete('/items/:id', CartController.deleteCartItem)
+
+//TODO - Add empty Cart route
 
 export default router;

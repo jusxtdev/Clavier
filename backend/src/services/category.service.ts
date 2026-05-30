@@ -121,11 +121,6 @@ const updateCategoryById = async (
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      // Record already exists
-      if (error.code == "P2002") {
-        throw new AppError("Category already exists", 409);
-      }
-
       // Record not found
       if (error.code == "P2025") {
         throw new AppError("Category Not Found", 404);

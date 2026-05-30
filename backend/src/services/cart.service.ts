@@ -1,6 +1,6 @@
 import { prisma } from "@/config/db.js";
 import { Prisma } from "@/generated/prisma/client.js";
-import { addToCartInput } from "@/schema/cart.schema.js";
+import { addToCartInput, updateCartInput } from "@/schema/cart.schema.js";
 import { AppError } from "@/utils/AppError.js";
 import ProductService from "./product.service.js";
 import CartItemService from "./cartItem.service.js";
@@ -118,6 +118,33 @@ const addToCart = async (userId: number, data: addToCartInput) => {
   return newItem;
 };
 
+const updateCart = async (userId : number, data : updateCartInput) => {
+  // find cart for user
+  const cart = await getUserCart(userId)
+  
+  if (!cart){
+    // respond with 404 if cart not found
+    throw new AppError(`Cart not found for user with id  : ${userId}`, 404)
+  }
+  
+  // updateCartItem(cartId, productId, newQty)
+  const productId = data.productId
+  const newQuantity = data.quantity
+  const product = await ProductService.getProductById(productId)
+  if (!product) {
+    throw new AppError("Product Not found", 404)
+  }
+  if (newQuantity > product.stock) {
+    throw new AppError("Quantity greater than Stock", 409)
+  }
+  const updatedCart = await CartItemService.updateItem(cart.id, productId, newQuantity)
+  if (!updatedCart){
+    throw new AppError("Item to update not found", 404)
+  }
+
+  return updatedCart
+}
+
 const removeFromCart = async (userId: number, productId: number) => {
   // check if cart exists for user
   const cart = await getUserCart(userId);
@@ -143,6 +170,6 @@ const removeFromCart = async (userId: number, productId: number) => {
   return updatedCart;
 };
 
-const CartService = { addToCart, getUserCart, removeFromCart };
+const CartService = { addToCart, getUserCart, removeFromCart , updateCart};
 
 export default CartService;

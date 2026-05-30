@@ -75,7 +75,7 @@ describe("/api/cart", () => {
         id: true,
       },
     });
-    const cartIds = carts.map((cart) => cart.id);
+    const cartIds = carts.map((cart :any) => cart.id);
 
     await prisma.cartItem.deleteMany({
       where: {
@@ -335,6 +335,157 @@ describe("/api/cart", () => {
       },
     });
     expect(cartItem?.quantity).toBe(3);
+  });
+
+  it("updates an existing cart item quantity", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+    const product = await createProduct(5);
+
+    await request(app)
+      .post("/api/cart/items")
+      .set(authHeaderFor(user.id))
+      .send({ productId: product.id, quantity: 2 })
+      .expect(201);
+
+    const response = await request(app)
+      .patch("/api/cart")
+      .set(authHeaderFor(user.id))
+      .send({ productId: product.id, quantity: 4 });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      status: true,
+      msg: "Updated Successfully",
+      data: {
+        productId: product.id,
+        quantity: 4,
+      },
+    });
+
+    const cartItem = await prisma.cartItem.findFirst({
+      where: {
+        cart: {
+          userId: user.id,
+        },
+        productId: product.id,
+      },
+    });
+    expect(cartItem?.quantity).toBe(4);
+  });
+
+  it("rejects invalid update-cart payloads before changing a cart item", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+    const product = await createProduct(5);
+
+    await request(app)
+      .post("/api/cart/items")
+      .set(authHeaderFor(user.id))
+      .send({ productId: product.id, quantity: 2 })
+      .expect(201);
+
+    const response = await request(app)
+      .patch("/api/cart")
+      .set(authHeaderFor(user.id))
+      .send({ productId: product.id, quantity: 0 });
+
+    expect(response.status).toBe(400);
+    expect(response.body.status).toBe(false);
+
+    const cartItem = await prisma.cartItem.findFirst({
+      where: {
+        cart: {
+          userId: user.id,
+        },
+        productId: product.id,
+      },
+    });
+    expect(cartItem?.quantity).toBe(2);
+  });
+
+  it("returns 404 when updating a user with no cart", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+    const product = await createProduct(5);
+
+    const response = await request(app)
+      .patch("/api/cart")
+      .set(authHeaderFor(user.id))
+      .send({ productId: product.id, quantity: 1 });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      status: false,
+      msg: `Cart not found for user with id  : ${user.id}`,
+    });
+  });
+
+  it("returns 404 when updating a product that is not in the cart", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+    const productInCart = await createProduct(5);
+    const productNotInCart = await createProduct(5);
+
+    await request(app)
+      .post("/api/cart/items")
+      .set(authHeaderFor(user.id))
+      .send({ productId: productInCart.id, quantity: 2 })
+      .expect(201);
+
+    const response = await request(app)
+      .patch("/api/cart")
+      .set(authHeaderFor(user.id))
+      .send({ productId: productNotInCart.id, quantity: 1 });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      status: false,
+      msg: "Item to update not found",
+    });
+
+    const cartItem = await prisma.cartItem.findFirst({
+      where: {
+        cart: {
+          userId: user.id,
+        },
+        productId: productInCart.id,
+      },
+    });
+    expect(cartItem?.quantity).toBe(2);
+  });
+
+  it("rejects updates that set quantity greater than available stock", async () => {
+    const app = await createTestApp();
+    const user = await createUser();
+    const product = await createProduct(2);
+
+    await request(app)
+      .post("/api/cart/items")
+      .set(authHeaderFor(user.id))
+      .send({ productId: product.id, quantity: 2 })
+      .expect(201);
+
+    const response = await request(app)
+      .patch("/api/cart")
+      .set(authHeaderFor(user.id))
+      .send({ productId: product.id, quantity: 3 });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      status: false,
+      msg: "Quantity greater than Stock",
+    });
+
+    const cartItem = await prisma.cartItem.findFirst({
+      where: {
+        cart: {
+          userId: user.id,
+        },
+        productId: product.id,
+      },
+    });
+    expect(cartItem?.quantity).toBe(2);
   });
 
   it("removes an existing item from the authenticated user's cart", async () => {

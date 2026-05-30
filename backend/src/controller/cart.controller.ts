@@ -1,4 +1,4 @@
-import { addToCartInput } from "@/schema/cart.schema.js";
+import { addToCartInput, updateCartInput } from "@/schema/cart.schema.js";
 import CartService from "@/services/cart.service.js";
 import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
@@ -39,10 +39,22 @@ const deleteCartItem = async (req: Request, res: Response) => {
     .json(jsonResponse(true, "Item Removed Successfully", updatedCart));
 };
 
+const updateCart = async (req : Request, res : Response) => {
+  const userId = Number(req.user?.userId)
+  const data : updateCartInput= req.body
+
+  const updated = await CartService.updateCart(userId, data)
+
+  return res.status(200).json(jsonResponse(true, "Updated Successfully", updated))
+
+}
+
+
 const CartController = {
   addToCart,
   getCart,
   deleteCartItem,
+  updateCart
 };
 
 export default CartController;
