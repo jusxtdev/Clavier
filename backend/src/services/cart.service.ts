@@ -17,7 +17,7 @@ const getUserCart = async (userId: number) => {
         userId: true,
         cartItems: {
           select: {
-            quantity : true,
+            quantity: true,
             product: true,
           },
         },
@@ -49,7 +49,7 @@ const createCart = async (userId: number) => {
         userId: true,
         cartItems: {
           select: {
-            quantity : true,
+            quantity: true,
             product: true,
           },
         },
@@ -118,32 +118,36 @@ const addToCart = async (userId: number, data: addToCartInput) => {
   return newItem;
 };
 
-const updateCart = async (userId : number, data : updateCartInput) => {
+const updateCart = async (userId: number, data: updateCartInput) => {
   // find cart for user
-  const cart = await getUserCart(userId)
-  
-  if (!cart){
+  const cart = await getUserCart(userId);
+
+  if (!cart) {
     // respond with 404 if cart not found
-    throw new AppError(`Cart not found for user with id  : ${userId}`, 404)
-  }
-  
-  // updateCartItem(cartId, productId, newQty)
-  const productId = data.productId
-  const newQuantity = data.quantity
-  const product = await ProductService.getProductById(productId)
-  if (!product) {
-    throw new AppError("Product Not found", 404)
-  }
-  if (newQuantity > product.stock) {
-    throw new AppError("Quantity greater than Stock", 409)
-  }
-  const updatedCart = await CartItemService.updateItem(cart.id, productId, newQuantity)
-  if (!updatedCart){
-    throw new AppError("Item to update not found", 404)
+    throw new AppError(`Cart not found for user with id  : ${userId}`, 404);
   }
 
-  return updatedCart
-}
+  // updateCartItem(cartId, productId, newQty)
+  const productId = data.productId;
+  const newQuantity = data.quantity;
+  const product = await ProductService.getProductById(productId);
+  if (!product) {
+    throw new AppError("Product Not found", 404);
+  }
+  if (newQuantity > product.stock) {
+    throw new AppError("Quantity greater than Stock", 409);
+  }
+  const updatedCart = await CartItemService.updateItem(
+    cart.id,
+    productId,
+    newQuantity,
+  );
+  if (!updatedCart) {
+    throw new AppError("Item to update not found", 404);
+  }
+
+  return updatedCart;
+};
 
 const removeFromCart = async (userId: number, productId: number) => {
   // check if cart exists for user
@@ -170,6 +174,24 @@ const removeFromCart = async (userId: number, productId: number) => {
   return updatedCart;
 };
 
-const CartService = { addToCart, getUserCart, removeFromCart , updateCart};
+const emptyCart = async (userId: number) => {
+  const cart = await getUserCart(userId);
+
+  if (!cart) {
+    // respond with 404 if cart not found
+    throw new AppError(`Cart not found for user with id  : ${userId}`, 404);
+  }
+
+  await CartItemService.deleteAllItems(cart.id);
+  return;
+};
+
+const CartService = {
+  addToCart,
+  getUserCart,
+  removeFromCart,
+  updateCart,
+  emptyCart,
+};
 
 export default CartService;

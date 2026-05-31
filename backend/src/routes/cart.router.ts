@@ -10,12 +10,13 @@ router.use(authenticate)
 
 router.post('/items', validate(CartSchema.addToCartSchema), CartController.addToCart)
 
+//TODO - Add filtering and sorting 
 router.get('/', CartController.getCart)
 
 router.patch('/', validate(CartSchema.updateCartSchema), CartController.updateCart)
 
 router.delete('/items/:id', CartController.deleteCartItem)
 
-//TODO - Add empty Cart route
+router.delete('/items', CartController.emptyCart)
 
 export default router;

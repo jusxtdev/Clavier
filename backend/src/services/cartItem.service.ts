@@ -103,11 +103,25 @@ const deleteItem = async (cartId : number, productId : number) => {
   return deleted
 }
 
+const deleteAllItems = async (cartId : number) => {
+  try {
+    await prisma.cartItem.deleteMany({
+      where : {
+        cartId : cartId
+      }
+    })
+  } catch (error) {
+    console.error(error)
+    throw new AppError("Internal Server Error", 500)
+  }
+}
+
 const CartItemService = {
   productInCart,
   addItem,
   updateItem,
-  deleteItem
+  deleteItem,
+  deleteAllItems
 };
 
 export default CartItemService;

@@ -39,22 +39,30 @@ const deleteCartItem = async (req: Request, res: Response) => {
     .json(jsonResponse(true, "Item Removed Successfully", updatedCart));
 };
 
-const updateCart = async (req : Request, res : Response) => {
-  const userId = Number(req.user?.userId)
-  const data : updateCartInput= req.body
+const updateCart = async (req: Request, res: Response) => {
+  const userId = Number(req.user?.userId);
+  const data: updateCartInput = req.body;
 
-  const updated = await CartService.updateCart(userId, data)
+  const updated = await CartService.updateCart(userId, data);
 
-  return res.status(200).json(jsonResponse(true, "Updated Successfully", updated))
+  return res
+    .status(200)
+    .json(jsonResponse(true, "Updated Successfully", updated));
+};
 
-}
+const emptyCart = async (req: Request, res: Response) => {
+  const userId = Number(req.user?.userId);
+  await CartService.emptyCart(userId);
 
+  res.status(204).send()
+};
 
 const CartController = {
   addToCart,
   getCart,
   deleteCartItem,
-  updateCart
+  updateCart,
+  emptyCart,
 };
 
 export default CartController;
