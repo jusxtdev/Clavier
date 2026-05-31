@@ -12,7 +12,7 @@ let VALID_SORT_FIELDS = ["price", "stock", "title", "createdAt"];
 let VALID_SORT_ORDER = ["asc", "desc"];
 
 const getProducts = async (req: Request, res: Response) => {
-  // pagination query params
+  // pagination query params 1
   const page = req.query.page === undefined ? 1 : Number(req.query.page);
   const limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
 

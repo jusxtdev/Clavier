@@ -10,7 +10,6 @@ router.use(authenticate)
 
 router.post('/items', validate(CartSchema.addToCartSchema), CartController.addToCart)
 
-//TODO - Add filtering and sorting 
 router.get('/', CartController.getCart)
 
 router.patch('/', validate(CartSchema.updateCartSchema), CartController.updateCart)
