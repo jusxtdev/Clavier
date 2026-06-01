@@ -4,6 +4,9 @@ An e-commerce backend built with Node.js, Express, TypeScript, PostgreSQL, Prism
 
 This project is being developed backend-first as a learning and portfolio project. The current backend covers authentication, users, products, categories, carts, role-based access control, validation, pagination, filtering, sorting, search, password reset emails, and automated tests.
 
+# High Level Overview
+![](./E-Commerce.png)
+
 ## AI Usage Note
 
 This project is part of my learning process, so AI is used selectively.
