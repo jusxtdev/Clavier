@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 function generateStars(count = 180) {
   const stars = [];
@@ -177,8 +178,8 @@ export default function Hero() {
             </div>
 
             {/* CTA */}
-            <a
-              href="/products"
+            <Link
+              to="/products"
               className="flex items-center gap-2 group self-start mt-4"
             >
               <span className="text-clavier-orange font-semibold text-lg group-hover:brightness-125 transition-all duration-200">[</span>
@@ -186,7 +187,7 @@ export default function Hero() {
                 View Products
               </span>
               <span className="text-clavier-orange font-semibold text-lg group-hover:brightness-125 transition-all duration-200">]</span>
-            </a>
+            </Link>
           </div>
 
           {/* Right Column — Animated Keyboard */}
