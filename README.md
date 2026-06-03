@@ -1,11 +1,12 @@
-# E-Commerce Backend
+# E-Commerce App (Backend Focused)
 
-An e-commerce backend built with Node.js, Express, TypeScript, PostgreSQL, Prisma, JWT authentication, bcrypt, Zod validation, Nodemailer, Vitest, and Supertest.
+E-commerce application built with Node.js, Express, TypeScript, PostgreSQL, Prisma, JWT authentication, Zod validation, bcrypt, Nodemailer, Vitest, and Supertest.
 
-This project is being developed backend-first as a learning and portfolio project. The current backend covers authentication, users, products, categories, carts, role-based access control, validation, pagination, filtering, sorting, search, password reset emails, and automated tests.
+This backend currently covers authentication, users, products, categories, carts, role-based access control, validation, pagination, filtering, sorting, search, password reset email flow, and automated tests.
 
-# High Level Overview
-![](./E-Commerce.png)
+## High Level Overview
+
+![E-Commerce backend overview](./E-Commerce.png)
 
 ## AI Usage Note
 
@@ -15,6 +16,7 @@ I use AI for:
 
 - Writing tests
 - Writing styles, such as Tailwind CSS
+- README/documentation polish
 
 I do not use AI for:
 
@@ -38,41 +40,42 @@ I do not use AI for:
 ## Project Structure
 
 ```txt
-.
-├── README.md
-└── backend
-    ├── package.json
-    ├── prisma
-    │   ├── migrations
-    │   └── schema.prisma
-    ├── src
-    │   ├── app.ts
-    │   ├── config
-    │   ├── controller
-    │   ├── generated
-    │   ├── middleware
-    │   ├── routes
-    │   ├── schema
-    │   ├── services
-    │   ├── utils
-    │   └── server.ts
-    ├── test
-    ├── tsconfig.json
-    └── vitest.config.ts
+backend
+├── package.json
+├── pnpm-workspace.yaml
+├── prisma
+│   ├── migrations
+│   └── schema.prisma
+├── src
+│   ├── app.ts
+│   ├── config
+│   ├── controller
+│   ├── generated
+│   ├── middleware
+│   ├── routes
+│   ├── schema
+│   ├── services
+│   ├── types
+│   ├── utils
+│   └── server.ts
+├── test
+├── tsconfig.json
+└── vitest.config.ts
 ```
 
 ## Features
 
 - Signup, login, logout, and authenticated user sessions
-- Password reset token generation, hashed token storage, and email delivery
-- JWT authentication middleware
+- Password reset token generation, hashed token storage, token expiry, and email delivery
+- JWT authentication middleware using `Authorization: Bearer <token>` or the `jwt` cookie
 - Role-based authorization with `ADMIN`, `STAFF`, and `BUYER`
 - User profile, admin user listing, role promotion, and deletion
-- Product CRUD with pagination, filtering, sorting, search, and category assignment
+- Public product browsing with pagination, filtering, sorting, search, and category filtering
+- Protected product create, update, and delete flows
 - Category CRUD with pagination
-- Cart item add, fetch, update, and remove flows
+- Cart add, fetch, update, remove item, and empty cart flows
 - Zod request validation
-- Centralized error handling
+- Centralized error handling with `AppError`
 - Prisma models and migrations for users, products, categories, product-category joins, carts, cart items, and reset tokens
 - Router, controller, service, and integration-style tests
 
@@ -136,9 +139,10 @@ pnpm dev
 pnpm test
 ```
 
-Run a single test file:
+Run selected tests:
 
 ```bash
+pnpm vitest run test/product.service.test.ts
 pnpm vitest run test/cart.router.test.ts
 ```
 
@@ -148,6 +152,8 @@ Protected routes require a valid JWT. The auth middleware accepts the token from
 
 - `Authorization: Bearer <token>`
 - `jwt` cookie
+
+Signup and login set the `jwt` cookie automatically.
 
 ## API Overview
 
@@ -160,6 +166,41 @@ Protected routes require a valid JWT. The auth middleware accepts the token from
 | `POST` | `/api/auth/logout` | Clear JWT cookie | Public |
 | `POST` | `/api/auth/forgotpass` | Send password reset email | Public |
 | `POST` | `/api/auth/resetpass?token=<userId>.<token>` | Reset password | Public |
+
+Signup body:
+
+```json
+{
+  "name": "Ali Khan",
+  "email": "ali@example.com",
+  "password": "password123"
+}
+```
+
+Login body:
+
+```json
+{
+  "email": "ali@example.com",
+  "password": "password123"
+}
+```
+
+Forgot password body:
+
+```json
+{
+  "email": "ali@example.com"
+}
+```
+
+Reset password body:
+
+```json
+{
+  "password": "new-password123"
+}
+```
 
 ### Users
 
@@ -193,12 +234,12 @@ Promote user body:
 
 ### Products
 
-All product routes require authentication.
+Product read routes are public. Product write routes require authentication and the required role.
 
 | Method | Route | Description | Roles |
 | --- | --- | --- | --- |
-| `GET` | `/api/products?page=1&limit=10` | List products with pagination, filtering, sorting, and search | Any authenticated user |
-| `GET` | `/api/products/:id` | Get product by ID | Any authenticated user |
+| `GET` | `/api/products?page=1&limit=10` | List products with pagination, filtering, sorting, and search | Public |
+| `GET` | `/api/products/:id` | Get product by ID | Public |
 | `POST` | `/api/products` | Create product | `ADMIN` |
 | `PATCH` | `/api/products/:id` | Update product | `ADMIN`, `STAFF` |
 | `DELETE` | `/api/products/:id` | Delete product | `ADMIN` |
@@ -273,7 +314,8 @@ All cart routes require authentication.
 | `GET` | `/api/cart` | Get the current user's cart | Any authenticated user |
 | `POST` | `/api/cart/items` | Add a product to the cart, or increment quantity if it already exists | Any authenticated user |
 | `PATCH` | `/api/cart` | Set the quantity for an existing cart item | Any authenticated user |
-| `DELETE` | `/api/cart/items/:id` | Remove a product from the cart | Any authenticated user |
+| `DELETE` | `/api/cart/items/:id` | Remove a product from the cart by product ID | Any authenticated user |
+| `DELETE` | `/api/cart/items` | Empty the current user's cart | Any authenticated user |
 
 Add item body:
 
@@ -298,6 +340,8 @@ Cart behavior notes:
 - `POST /api/cart/items` creates a cart for the user if one does not already exist.
 - Adding an existing product increments its quantity.
 - `PATCH /api/cart` updates the item quantity to the exact value sent.
+- `DELETE /api/cart/items/:id` treats `:id` as the product ID.
+- `DELETE /api/cart/items` empties the full cart and returns `204 No Content`.
 - Cart quantity cannot be greater than product stock.
 - Product IDs and quantities must be positive integers.
 
@@ -347,6 +391,8 @@ Error responses generally use:
 }
 ```
 
+Some delete operations return `204 No Content`.
+
 ## Testing
 
 Run the full test suite:
@@ -393,8 +439,10 @@ BUYER
 
 ## Development Notes
 
-- Product, category, user, and cart routes are protected behind authentication unless documented as public auth routes.
+- Product read routes are public; product write routes are protected by authentication and roles.
+- Category, user, and cart routes are protected behind authentication unless documented as public auth routes.
 - Password reset emails use Nodemailer with configured sender credentials.
+- Password reset links use `FRONTEND_URL` as the base URL, falling back to the backend URL when no frontend is configured.
 - Prisma client output is configured to `backend/src/generated/prisma`.
 - Available scripts are `pnpm dev` and `pnpm test`.
 - Docker configuration, seed scripts, and production build scripts have not been added yet.

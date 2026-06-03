@@ -1,1 +1,65 @@
 @import "tailwindcss";
+
+@theme {
+  /* ── Fonts ── */
+  --font-cormorant: 'Cormorant Garamond', serif;
+  --font-playfair:  'Playfair Display', serif;
+  --font-inter:     'Inter', sans-serif;
+
+  /* ── Backgrounds ── */
+  --color-clavier-bg:       #080808;
+  --color-clavier-bg-2:     #111111;
+  --color-clavier-bg-3:     #1A1A1A;
+  --color-clavier-nav:      #161616;
+  --color-clavier-input:    #0F0F0F;
+
+  /* ── Accents ── */
+  --color-clavier-red:      #C0392B;
+  --color-clavier-orange:   #D4621A;
+  --color-clavier-red-d:    #8B2500;
+  --color-clavier-success:  #2E7D5E;
+  --color-clavier-warning:  #B07D2A;
+
+  /* ── Text ── */
+  --color-clavier-cream:    #F5F0EB;
+  --color-clavier-muted:    #A89F97;
+  --color-clavier-dim:      #5C5650;
+
+  /* ── Borders ── */
+  --color-clavier-border:   #2A2520;
+  --color-clavier-border-b: #3D3530;
+}
+
+/* ── Global resets ── */
+body {
+  background: #080808;
+  color: #F5F0EB;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Animations ── */
+@keyframes twinkle {
+  from { opacity: 0.15; }
+  to   { opacity: 0.85; }
+}
+
+@keyframes float {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-10px); }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080808;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A2520;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3D3530;
+}
