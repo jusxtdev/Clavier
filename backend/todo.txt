@@ -1,2 +1,0 @@
-- Prevent Race Conditions in addToCart (cart.service.ts (line 67) ), same can happen in createCart too
-- fix select statements of getService of Cart
