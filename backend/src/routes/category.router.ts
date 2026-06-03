@@ -17,6 +17,6 @@ router.post("/", authorize(["ADMIN"]), validate(CategorySchema.newCategory), Cat
 
 router.patch("/:id", authorize(["ADMIN"]), validate(CategorySchema.updateCategory), CategoryController.updateCategory)
 
-router.delete("/:id", authorize(["ADMIN"]), CategoryController.deleteCategroy)
+router.delete("/:id", authorize(["ADMIN"]), CategoryController.deleteCategory)
 
 export default router;

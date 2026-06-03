@@ -5,6 +5,11 @@ import { AppError } from "@/utils/AppError.js";
 import ProductService from "./product.service.js";
 import CartItemService from "./cartItem.service.js";
 
+/**
+ * Get a user's cart by their ID.
+ * @param userId User's ID to retrieve the cart for.
+ * @returns The user's cart or null if not found.
+ */
 const getUserCart = async (userId: number) => {
   let cart;
   try {
@@ -37,6 +42,11 @@ const getUserCart = async (userId: number) => {
   return cart;
 };
 
+/**
+ * Create a new cart for a user.
+ * @param userId User's ID to create the cart for.
+ * @returns The newly created cart.
+ */
 const createCart = async (userId: number) => {
   let newCart;
   try {
@@ -63,6 +73,15 @@ const createCart = async (userId: number) => {
   return newCart;
 };
 
+/**
+ * Add a product to the user's cart. 
+ * If the cart doesn't exist, it will be created. 
+ * If the product is already in the cart, its quantity will be updated.
+ * @param userId User's ID to add the product to their cart.
+ * @param data Products ID and quantity to add to the cart.
+ * @returns Newly added or updated cart item.
+ * @throws AppError if the product is not found, not in stock, or if the quantity exceeds stock.
+ */
 const addToCart = async (userId: number, data: addToCartInput) => {
   // find current users' cart
   let cart = await getUserCart(userId);
@@ -118,6 +137,18 @@ const addToCart = async (userId: number, data: addToCartInput) => {
   return newItem;
 };
 
+/**
+ * Update the quantity of a product in the user's cart.
+ * It validates the cart and product existence, checks stock availability,
+ * and updates the cart item quantity accordingly.
+ * @param userId 
+ * @param data 
+ * @returns 
+ * @throws AppError if the cart is not found for the user, 
+ *         if the product is not found, 
+ *         if the requested quantity exceeds available stock,
+ *         or if the item to update is not found in the cart.
+ */
 const updateCart = async (userId: number, data: updateCartInput) => {
   // find cart for user
   const cart = await getUserCart(userId);
@@ -149,6 +180,15 @@ const updateCart = async (userId: number, data: updateCartInput) => {
   return updatedCart;
 };
 
+/**
+ * Remove a product from the user's cart. 
+ * It validates the product ID, 
+ * checks if the product exists in the cart, and removes it if found.
+ * @param userId User's ID to remove the product from their cart.
+ * @param productId Product's ID to be removed from the cart.
+ * @returns The updated cart after removing the item.
+ * @throws AppError if the product ID is invalid or if the item to delete is not found in the cart.
+ */
 const removeFromCart = async (userId: number, productId: number) => {
   // check if cart exists for user
   const cart = await getUserCart(userId);
@@ -174,6 +214,13 @@ const removeFromCart = async (userId: number, productId: number) => {
   return updatedCart;
 };
 
+/**
+ * Clear all items from the user's cart.
+ * It retrieves the user's cart, validates its existence, and deletes all items from it.
+ * @param userId User's ID to clear the cart for.
+ * @returns void
+ * @throws AppError if the cart is not found for the user. 
+ */
 const emptyCart = async (userId: number) => {
   const cart = await getUserCart(userId);
 

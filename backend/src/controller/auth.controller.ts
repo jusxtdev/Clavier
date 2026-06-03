@@ -16,6 +16,19 @@ import { env } from "@/env.js";
 import UserService from "@/services/user.service.js";
 import ResetTokenService from "@/services/resetToken.service.js";
 
+
+/**
+ * Handles user signup logic.
+ * Throws 409 if email already exists,
+ * otherwise creates a new user,
+ * generates a JWT token, 
+ * stores it in a cookie, 
+ * and responds with the new user data.
+ * @param req 
+ * @param res 
+ * @returns 
+ * @throws AppError if email already exists
+ */
 const signup = async (req: Request, res: Response) => {
   const data: signupInput = req.body;
 
@@ -41,6 +54,19 @@ const signup = async (req: Request, res: Response) => {
     .json(jsonResponse(true, "Signup Successfull", newUser));
 };
 
+/**
+ * Login controller that handles user authentication.
+ * Throws 404 if user is not found,
+ * 400 if password is incorrect,
+ * otherwise generates a JWT token, 
+ * stores it in a cookie, 
+ * and responds with a success message.
+ *  
+ * @param req 
+ * @param res 
+ * @returns 
+ * @throws AppError if user not found or password is incorrect
+ */
 const login = async (req: Request, res: Response) => {
   const data: loginInput = req.body;
 
@@ -70,11 +96,27 @@ const login = async (req: Request, res: Response) => {
   return res.status(200).json(jsonResponse(true, "Logged in successfully"));
 };
 
+/**
+ * Logout controller that clears the JWT cookie and responds with a success message.
+ * @param _req 
+ * @param res 
+ * 
+ */
 const logout = async (_req: Request, res: Response) => {
   res.clearCookie("jwt");
   res.status(200).json(jsonResponse(true, "Logged out successfully"));
 };
 
+/**
+ * Forgot password controller that handles password reset requests.
+ * If the email exists, it generates a reset token, stores it in the database,
+ * and sends a password reset link to the user's email. 
+ * If the email does not exist, it still responds with a success message to prevent email enumeration.
+ * @param req 
+ * @param res 
+ * @returns 
+ * @throws AppError 500 if there is an error during the process (e.g., email sending failure)
+ */
 const forgotpass = async (req: Request, res: Response) => {
   const { email }: forgotpassInput = req.body;
 
@@ -119,6 +161,16 @@ const forgotpass = async (req: Request, res: Response) => {
     .json(jsonResponse(true, "Password Reset link sent to your email"));
 };
 
+/**
+ * Reset password controller that handles password reset requests.
+ * It verifies the reset token, checks for expiry, hashes the new password,
+ * updates it in the database, deletes the reset token, and responds with a success message.
+ * If the token is invalid or expired, it throws an AppError with a 401 status code.
+ * 
+ * @param req 
+ * @param res 
+ * @throws AppError if the token is invalid or expired
+ */
 const resetpass = async (req: Request, res: Response) => {
   const [userId, resetToken] = String(req.query.token).split(".");
   const { password }: resetpassInput = req.body;

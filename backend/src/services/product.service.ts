@@ -7,6 +7,18 @@ import {
 import { AppError } from "@/utils/AppError.js";
 import CategoryService from "./category.service.js";
 
+/**
+ * Get all products with pagination, sorting, and filtering capabilities.
+ * It constructs a filter object based on the provided criteria, calls the Prisma client to fetch the products,
+ * and returns the product data along with the total count of products matching the criteria.
+ * @param page Page number for pagination.
+ * @param limit Number of products to return per page.
+ * @param sortBy Field to sort by (e.g., "price", "stock", "title", "createdAt").
+ * @param sortOrder Sort order ("asc" for ascending, "desc" for descending).
+ * @param where Filter criteria for products (e.g., price range, stock range, category).
+ * @returns An object containing the list of products and the total count of products matching the criteria.
+ * @throws AppError if there is an internal server error during the database query.
+ */
 const getAllProducts = async (
   page: number,
   limit: number,
@@ -49,6 +61,14 @@ const getAllProducts = async (
   return { allProducts, totalProductsCount };
 };
 
+/**
+ * Get a product by its ID.
+ * It calls the Prisma client to fetch the product with the specified ID and returns the product data.
+ * If the product is not found, it returns null.
+ * @param productId The ID of the product to retrieve.
+ * @returns The product data if found, or null if not found.
+ * @throws AppError if there is an internal server error during the database query.
+ */
 const getProductById = async (productId: number) => {
   let product;
   try {
@@ -85,6 +105,14 @@ const getProductById = async (productId: number) => {
   return product;
 };
 
+/**
+ * Create a new product with the provided data.
+ * It first creates or fetches the associated categories, then calls the Prisma client to create the product with the specified data and categories.
+ * If a product with the same unique fields already exists, it throws a conflict error.
+ * @param data The data for creating the product, including title, description, price, stock, images, and categories.
+ * @returns The newly created product data.
+ * @throws AppError if a product with the same unique fields already exists or if there is an internal server error during the database query.
+ */
 const createProduct = async (data: CreateProductInput) => {
   let newProduct;
 
@@ -133,6 +161,15 @@ const createProduct = async (data: CreateProductInput) => {
   return newProduct;
 };
 
+/**
+ * Update a product by its ID.
+ * It calls the Prisma client to update the product with the specified ID and data, and returns the updated product data.
+ * If the product is not found, it throws a not found error.
+ * @param productId The ID of the product to update.
+ * @param data The data for updating the product, including title, description, price, stock, images, and categories.
+ * @returns The updated product data.
+ * @throws AppError if the product is not found or if there is an internal server error during the database query.
+ */
 const updateProductById = async (
   productId: number,
   data: UpdateProductInput,
@@ -193,6 +230,13 @@ const updateProductById = async (
   return updatedProduct;
 };
 
+/**
+ * Delete a product by its ID.
+ * It calls the Prisma client to delete the product with the specified ID.
+ * If the product is not found, it throws a not found error.
+ * @param productId The ID of the product to delete.
+ * @throws AppError if the product is not found or if there is an internal server error during the database query.
+ */
 const deleteProductById = async (productId: number) => {
   try {
     await prisma.product.delete({

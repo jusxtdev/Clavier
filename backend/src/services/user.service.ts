@@ -3,6 +3,14 @@ import { Prisma, Role } from "@/generated/prisma/client.js";
 import { signupInput } from "@/schema/auth.schema.js";
 import { AppError } from "@/utils/AppError.js";
 
+/**
+ * Get all users with pagination and optional filters.
+ * @param page Page number to retrieve.
+ * @param limit Number of users to retrieve per page.
+ * @param where Prisma filter object to apply to the user query.
+ * @returns Object containing users and total user count.
+ * @throws AppError if there is an internal server error during the database query.
+ */
 const getAllUsers = async (page: number, limit: number, where : any) => {
   let totalUserCount;
   let allUsers;
@@ -27,6 +35,12 @@ const getAllUsers = async (page: number, limit: number, where : any) => {
   return { allUsers, totalUserCount };
 };
 
+/**
+ * Find a user by their email address.
+ * @param email User's email address to search for.
+ * @returns The user if found, or null if not found.
+ * @throws AppError if there is an internal server error during the database query.
+ */
 const findUserByEmail = async (email: string) => {
   let user;
   try {
@@ -55,6 +69,12 @@ const findUserByEmail = async (email: string) => {
   return user;
 };
 
+/**
+ * Find a user by their ID.
+ * @param userId User's ID to search for.
+ * @returns The user if found.
+ * @throws AppError if the user is not found or if there is an internal server error.
+ */
 const findUserById = async (userId: number) => {
   let user;
   try {
@@ -82,6 +102,13 @@ const findUserById = async (userId: number) => {
   return user;
 };
 
+/**
+ * Create a new user.
+ * @param data User signup data.
+ * @param hashedPass Hashed password to store for the user.
+ * @returns The newly created user without password.
+ * @throws AppError if the user already exists or if there is an internal server error.
+ */
 const createNewUser = async (data: signupInput, hashedPass: string) => {
   let newUser;
   try {
@@ -112,6 +139,13 @@ const createNewUser = async (data: signupInput, hashedPass: string) => {
   return newUser;
 };
 
+/**
+ * Update a user's password by their ID.
+ * @param userId User's ID to update.
+ * @param hashedPass New hashed password to store.
+ * @returns The updated user without password.
+ * @throws AppError if there is an internal server error during the database query.
+ */
 const updatePassById = async (userId: number, hashedPass: string) => {
   let updated;
   try {
@@ -136,6 +170,13 @@ const updatePassById = async (userId: number, hashedPass: string) => {
   return updated;
 };
 
+/**
+ * Update a user's role by their ID.
+ * @param userId User's ID to update.
+ * @param role New role to assign to the user.
+ * @returns The updated user.
+ * @throws AppError if the user is not found or if there is an internal server error.
+ */
 const updateRoleById = async (userId: number, role: Role) => {
   let updated;
   try {
@@ -161,6 +202,12 @@ const updateRoleById = async (userId: number, role: Role) => {
   return updated;
 };
 
+/**
+ * Delete a user by their ID.
+ * @param userId User's ID to delete.
+ * @returns void
+ * @throws AppError if the user is not found or if there is an internal server error.
+ */
 const deleteUserById = async (userId: number) => {
   try {
     await prisma.user.delete({

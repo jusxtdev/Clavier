@@ -8,9 +8,21 @@ import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
 
+// Allowed Sort Fields and Order
 let VALID_SORT_FIELDS = ["price", "stock", "title", "createdAt"];
 let VALID_SORT_ORDER = ["asc", "desc"];
 
+/**
+ * Get all products with pagination, sorting, filtering, and search capabilities.
+ * It validates the query parameters, constructs a filter object based on the provided criteria,
+ * calls the ProductService to fetch the products, and responds with the product data and pagination info.
+ * 
+ * Throws 400 if any of the query parameters are invalid.
+ * 
+ * @param req 
+ * @param res 
+ * @throws AppError if any of the query parameters are invalid (e.g., pagination, sorting, filtering)
+ */
 const getProducts = async (req: Request, res: Response) => {
   // pagination query params 1
   const page = req.query.page === undefined ? 1 : Number(req.query.page);
@@ -98,6 +110,18 @@ const getProducts = async (req: Request, res: Response) => {
     );
 };
 
+/**
+ * Get a product by its ID. 
+ * It validates the product ID from the request parameters,
+ * calls the ProductService to fetch the product,
+ * and responds with the product data.
+ * 
+ * Throws 400 if the product ID is invalid.
+ * @param req 
+ * @param res 
+ * @returns 
+ * @throws AppError if the product ID is invalid
+ */
 const getProductById = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
 
@@ -112,6 +136,17 @@ const getProductById = async (req: Request, res: Response) => {
     .json(jsonResponse(true, `Product with id ${productId}`, product));
 };
 
+/**
+ * Create a new product.
+ * It validates the input data,
+ * calls the ProductService to create the product,
+ * and responds with the created product data.
+ * 
+ * Throws 400 if the input data is invalid.
+ * @param req 
+ * @param res 
+ * @throws AppError if the input data is invalid
+ */
 const createProduct = async (req: Request, res: Response) => {
   const data: CreateProductInput = req.body;
 
@@ -124,6 +159,18 @@ const createProduct = async (req: Request, res: Response) => {
     .json(jsonResponse(true, "Successfully added new product", newProduct));
 };
 
+/**
+ * Update a product by its ID.
+ * It validates the input data and product ID,
+ * calls the ProductService to update the product,
+ * and responds with the updated product data.
+ * 
+ * Throws 400 if the product ID or input data is invalid.
+ * @param req 
+ * @param res 
+ * @returns 
+ * @throws AppError if the product ID or input data is invalid
+ */
 const updateProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
   if (!productId) {
@@ -142,6 +189,17 @@ const updateProduct = async (req: Request, res: Response) => {
     .json(jsonResponse(true, "Update successfully", updatedProduct));
 };
 
+/**
+ * Delete a product by its ID.
+ * It validates the product ID from the request parameters,
+ * calls the ProductService to delete the product,
+ * and responds with a 204 No Content status.
+ * 
+ * Throws 400 if the product ID is invalid.
+ * @param req 
+ * @param res 
+ * @throws AppError if the product ID is invalid
+ */
 const deleteProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
   if (!productId) {

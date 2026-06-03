@@ -6,6 +6,13 @@ import {
 } from "@/schema/category.schema.js";
 import { AppError } from "@/utils/AppError.js";
 
+/**
+ * Get all categories with pagination.
+ * @param page Page number to retrieve.
+ * @param limit Number of categories to retrieve per page.
+ * @returns Object containing categories and total category count.
+ * @throws AppError if there is an internal server error during the database query.
+ */
 const getAllCategories = async (page: number, limit: number) => {
   let totalCategories;
   let allCategories;
@@ -27,6 +34,12 @@ const getAllCategories = async (page: number, limit: number) => {
   return { allCategories, totalCategories };
 };
 
+/**
+ * Get a category by its ID.
+ * @param categoryId Category's ID to retrieve.
+ * @returns The category if found.
+ * @throws AppError if the category is not found or if there is an internal server error.
+ */
 const getCategoryById = async (categoryId: number) => {
   let category;
   try {
@@ -55,6 +68,13 @@ const getCategoryById = async (categoryId: number) => {
   return category;
 };
 
+/**
+ * Get a category by its title.
+ * It normalizes the title to lowercase before searching.
+ * @param title Category title to search for.
+ * @returns The category if found, or null if not found.
+ * @throws AppError if there is an internal server error during the database query.
+ */
 const getCategoryByTitle = async (title: string) => {
   title = title.toLowerCase();
 
@@ -80,6 +100,13 @@ const getCategoryByTitle = async (title: string) => {
   return category;
 };
 
+/**
+ * Create a new category.
+ * It stores the category title in lowercase.
+ * @param data Category title and optional description.
+ * @returns The newly created category.
+ * @throws AppError if the category already exists or if there is an internal server error.
+ */
 const createCategory = async (data: newCategoryInput) => {
   let newCategory;
   try {
@@ -102,6 +129,13 @@ const createCategory = async (data: newCategoryInput) => {
   return newCategory;
 };
 
+/**
+ * Update a category by its ID.
+ * @param categoryId Category's ID to update.
+ * @param data Category fields to update.
+ * @returns The updated category.
+ * @throws AppError if the category is not found or if there is an internal server error.
+ */
 const updateCategoryById = async (
   categoryId: number,
   data: updateCategoryInput,
@@ -133,6 +167,12 @@ const updateCategoryById = async (
   return updatedCategory;
 };
 
+/**
+ * Delete a category by its ID.
+ * @param categoryId Category's ID to delete.
+ * @returns void
+ * @throws AppError if the category is not found or if there is an internal server error.
+ */
 const deleteCategoryById = async (categoryId: number) => {
   try {
     await prisma.category.delete({
@@ -152,6 +192,13 @@ const deleteCategoryById = async (categoryId: number) => {
   }
 };
 
+/**
+ * Create missing categories and build product-category connection objects.
+ * It returns an array used by Prisma to connect categories to a product.
+ * @param categories Category titles to create or fetch.
+ * @returns Prisma connection objects for the categories, or undefined if no categories are provided.
+ * @throws AppError if a category lookup or creation fails.
+ */
 const createAndFetchCategories = async (categories: string[] | undefined) => {
   /*
   This function returns an array used to connect categories to products table

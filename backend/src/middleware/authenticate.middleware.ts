@@ -5,6 +5,13 @@ import { jwtPayload } from "@/utils/generateToken.js";
 import { AppError } from "@/utils/AppError.js";
 import UserService from "@/services/user.service.js";
 
+/**
+ * Middleware to authenticate users using JWT tokens.
+ * @param req Request object containing the JWT token in the Authorization header or cookies.
+ * @param _res Response object.
+ * @param next Next function for the middleware chain.
+ * @throws AppError if the token is missing, invalid, expired, or if the user does not exist.
+ */
 const authenticate = async (
   req: Request,
   _res: Response,

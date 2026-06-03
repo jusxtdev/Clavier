@@ -9,6 +9,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+/**
+ * Send a password reset email to a user.
+ * @param receiverEmail User's email address to send the reset link to.
+ * @param resetLink Password reset link to include in the email.
+ * @returns void
+ */
 export const passwordResetEmail = async (receiverEmail: string, resetLink: string) => {
   await transporter.sendMail({
     from: env.SENDER_EMAIL,
@@ -21,4 +27,3 @@ export const passwordResetEmail = async (receiverEmail: string, resetLink: strin
         `,
   });
 };
-

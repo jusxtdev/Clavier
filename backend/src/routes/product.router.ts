@@ -7,7 +7,7 @@ import express from "express";
 
 const router = express.Router();
 
-// Each route is accessible to logged in users only
+// Anyone can get the products but only authenticated users can interact with it
 
 router.get("/", ProductController.getProducts);
 

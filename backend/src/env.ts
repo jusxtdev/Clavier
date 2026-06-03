@@ -3,6 +3,10 @@ import { z } from "zod";
 import { config } from "dotenv";
 config();
 
+/**
+ * Used to access environment variables
+ * from JS Object
+ */
 export const env = createEnv({
   server: {
     PORT: z.coerce.number(),

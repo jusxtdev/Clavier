@@ -7,6 +7,7 @@ import rootRouter from "./routes/root.router.js";
 import { AppError } from "./utils/AppError.js";
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
 
+// configure dotenv
 config();
 
 await connectDB();

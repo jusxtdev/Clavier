@@ -11,6 +11,13 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter })
 
+/**
+ * Connects to the database using Prisma. 
+ * If the connection is successful, it logs a success message. 
+ * If there is an error during the connection, it logs the error and exits the process with a failure code.
+ * @returns {Promise<void>} A promise that resolves when the connection is established or rejects if there is an error.
+ * @throws {Error} If there is an error during the database connection, it throws an error with the message "DB Connection error" along with the original error details.
+ */
 const connectDB = async () => {
     try {
         await prisma.$connect();

@@ -1,8 +1,13 @@
 import { ZodSchema } from "zod";
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "@/utils/AppError.js";
-// import { jsonErrorResponse } from "@/utils/jsonResponse.js";
 
+/**
+ * Zod validation middleware to validate incoming request bodies against a defined schema.
+ * @param schema 
+ * @returns A middleware function that validates the request body and either passes control to the next middleware or throws an error if validation fails.
+ * @throws AppError if the validation fails, resulting in a 400 Bad Request error with details about the validation issues.
+*/
 export const validate =
   (schema: ZodSchema) =>
   async (req: Request, _res: Response, next: NextFunction) => {

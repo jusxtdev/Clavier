@@ -4,6 +4,17 @@ import { AppError } from "@/utils/AppError.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import { Request, Response } from "express";
 
+/**
+ * Get current authenticated user's data.
+ * It retrieves the user ID from the request, validates it, 
+ * calls the UserService to fetch the user data, and responds with the user information.
+ * 
+ * Throws 400 if the user ID is invalid.
+ * @param req 
+ * @param res 
+ * @returns 
+ * @throws AppError if the user ID is invalid
+ */
 const getCurrentUser = async (req: Request, res: Response) => {
   const userId = Number(req.user?.userId);
 
@@ -18,6 +29,18 @@ const getCurrentUser = async (req: Request, res: Response) => {
     .json(jsonResponse(true, `User with id ${userId}`, user));
 };
 
+/**
+ * Get a user by their ID.
+ * It validates the user ID from the request parameters,
+ * calls the UserService to fetch the user,
+ * and responds with the user data.
+ * 
+ * Throws 400 if the user ID is invalid.
+ * @param req 
+ * @param res 
+ * @returns 
+ * @throws AppError if the user ID is invalid
+ */
 const getUserById = async (req: Request, res: Response) => {
   const userId = Number(req.params.id);
   if (!userId) {
@@ -30,8 +53,19 @@ const getUserById = async (req: Request, res: Response) => {
     .json(jsonResponse(true, `User with id ${userId}`, user));
 };
 
+// Allowed Roles for User
 const VALID_ROLES = ["BUYER", "STAFF", "ADMIN"];
 
+/**
+ * Get all users with pagination, filtering, and search capabilities.
+ * It validates the query parameters, constructs a filter object based on the provided criteria,
+ * calls the UserService to fetch the users, and responds with the user data and pagination info.
+ * 
+ * Throws 400 if any of the query parameters are invalid.
+ * @param req 
+ * @param res 
+ * @throws AppError if any of the query parameters are invalid (e.g., pagination, filtering, search)
+ */
 const getUsers = async (req: Request, res: Response) => {
   const page = req.query.page === undefined ? 1 : Number(req.query.page);
   const limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
@@ -91,6 +125,17 @@ const getUsers = async (req: Request, res: Response) => {
     );
 };
 
+/**
+ * Promote a user's role by their ID.
+ * It validates the input data,
+ * calls the UserService to update the user's role,
+ * and responds with the updated user data.
+ * 
+ * Throws 400 if the input data is invalid.
+ * @param req 
+ * @param res 
+ * @throws AppError if the input data is invalid
+ */
 const promoteUserRole = async (req: Request, res: Response) => {
   const { userId, role }: promoteUserRoleInput = req.body;
 
@@ -101,7 +146,19 @@ const promoteUserRole = async (req: Request, res: Response) => {
     .json(jsonResponse(true, "User Promoted Successfully", updated));
 };
 
-const delteUserById = async (req: Request, res: Response) => {
+/**
+ * Delete a user by their ID.
+ * It validates the user ID from the request parameters,
+ * calls the UserService to delete the user,
+ * and responds with a 204 No Content status.
+ * 
+ * Throws 400 if the user ID is invalid.
+ * @param req 
+ * @param res 
+ * @returns 
+ * @throws AppError if the user ID is invalid
+ */
+const deleteUserById = async (req: Request, res: Response) => {
   const userId = Number(req.params.id);
   if (!userId) {
     throw new AppError("Invalid Id", 400);
@@ -112,6 +169,16 @@ const delteUserById = async (req: Request, res: Response) => {
   return res.status(204).send();
 };
 
+/**
+ * Delete the currently authenticated user.
+ * It retrieves the user ID from the request, validates it,
+ * calls the UserService to delete the user, and responds with a 204 No Content status.
+ * 
+ * Throws 400 if the user ID is invalid.
+ * @param req 
+ * @param res 
+ * @throws AppError if the user ID is invalid
+ */
 const deleteCurrentUser = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
   if (!userId) {
@@ -126,7 +193,7 @@ const UserController = {
   getCurrentUser,
   getUserById,
   getUsers,
-  delteUserById,
+  deleteUserById,
   deleteCurrentUser,
   promoteUserRole,
 };
