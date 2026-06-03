@@ -2,6 +2,9 @@ import { prisma } from "@/config/db.js";
 import { Prisma, Role } from "@/generated/prisma/client.js";
 import { signupInput } from "@/schema/auth.schema.js";
 import { AppError } from "@/utils/AppError.js";
+import { PrismaClient } from "@prisma/client/extension";
+
+type DbClient = PrismaClient | Prisma.TransactionClient;
 
 /**
  * Get all users with pagination and optional filters.
@@ -11,7 +14,7 @@ import { AppError } from "@/utils/AppError.js";
  * @returns Object containing users and total user count.
  * @throws AppError if there is an internal server error during the database query.
  */
-const getAllUsers = async (page: number, limit: number, where : any) => {
+const getAllUsers = async (page: number, limit: number, where: any) => {
   let totalUserCount;
   let allUsers;
   try {
@@ -146,10 +149,13 @@ const createNewUser = async (data: signupInput, hashedPass: string) => {
  * @returns The updated user without password.
  * @throws AppError if there is an internal server error during the database query.
  */
-const updatePassById = async (userId: number, hashedPass: string) => {
+const updatePassById = async (
+  db : DbClient,
+  userId: number, 
+  hashedPass: string) => {
   let updated;
   try {
-    updated = await prisma.user.update({
+    updated = await db.user.update({
       where: {
         id: userId,
       },

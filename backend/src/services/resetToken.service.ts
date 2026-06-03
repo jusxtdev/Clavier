@@ -1,6 +1,9 @@
 import { prisma } from "@/config/db.js";
 import { Prisma } from "@/generated/prisma/client.js";
 import { AppError } from "@/utils/AppError.js";
+import { PrismaClient } from "@prisma/client/extension";
+
+type DbClient = PrismaClient | Prisma.TransactionClient;
 
 /**
  * Add a new password reset token for a user.
@@ -69,10 +72,13 @@ const findTokenByUserId = async (userId: number) => {
  * @returns The deleted reset token row.
  * @throws AppError if there is an internal server error during the database query.
  */
-const deleteTokenByUserIdAndToken = async (userId: number, token: string) => {
+const deleteTokenByUserIdAndToken = async (
+  db : DbClient,
+  userId: number, 
+  token: string) => {
   let deleted;
   try {
-    deleted = await prisma.password_reset_token.delete({
+    deleted = await db.password_reset_token.delete({
       where: {
         userId_token: {
           userId: Number(userId),

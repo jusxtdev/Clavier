@@ -15,18 +15,18 @@ import { passwordResetEmail } from "@/services/email.service.js";
 import { env } from "@/env.js";
 import UserService from "@/services/user.service.js";
 import ResetTokenService from "@/services/resetToken.service.js";
-
+import { prisma } from "@/config/db.js";
 
 /**
  * Handles user signup logic.
  * Throws 409 if email already exists,
  * otherwise creates a new user,
- * generates a JWT token, 
- * stores it in a cookie, 
+ * generates a JWT token,
+ * stores it in a cookie,
  * and responds with the new user data.
- * @param req 
- * @param res 
- * @returns 
+ * @param req
+ * @param res
+ * @returns
  * @throws AppError if email already exists
  */
 const signup = async (req: Request, res: Response) => {
@@ -58,13 +58,13 @@ const signup = async (req: Request, res: Response) => {
  * Login controller that handles user authentication.
  * Throws 404 if user is not found,
  * 400 if password is incorrect,
- * otherwise generates a JWT token, 
- * stores it in a cookie, 
+ * otherwise generates a JWT token,
+ * stores it in a cookie,
  * and responds with a success message.
- *  
- * @param req 
- * @param res 
- * @returns 
+ *
+ * @param req
+ * @param res
+ * @returns
  * @throws AppError if user not found or password is incorrect
  */
 const login = async (req: Request, res: Response) => {
@@ -98,9 +98,9 @@ const login = async (req: Request, res: Response) => {
 
 /**
  * Logout controller that clears the JWT cookie and responds with a success message.
- * @param _req 
- * @param res 
- * 
+ * @param _req
+ * @param res
+ *
  */
 const logout = async (_req: Request, res: Response) => {
   res.clearCookie("jwt");
@@ -110,11 +110,11 @@ const logout = async (_req: Request, res: Response) => {
 /**
  * Forgot password controller that handles password reset requests.
  * If the email exists, it generates a reset token, stores it in the database,
- * and sends a password reset link to the user's email. 
+ * and sends a password reset link to the user's email.
  * If the email does not exist, it still responds with a success message to prevent email enumeration.
- * @param req 
- * @param res 
- * @returns 
+ * @param req
+ * @param res
+ * @returns
  * @throws AppError 500 if there is an error during the process (e.g., email sending failure)
  */
 const forgotpass = async (req: Request, res: Response) => {
@@ -166,9 +166,9 @@ const forgotpass = async (req: Request, res: Response) => {
  * It verifies the reset token, checks for expiry, hashes the new password,
  * updates it in the database, deletes the reset token, and responds with a success message.
  * If the token is invalid or expired, it throws an AppError with a 401 status code.
- * 
- * @param req 
- * @param res 
+ *
+ * @param req
+ * @param res
  * @throws AppError if the token is invalid or expired
  */
 const resetpass = async (req: Request, res: Response) => {
@@ -201,16 +201,17 @@ const resetpass = async (req: Request, res: Response) => {
   const SALT = await bcrypt.genSalt(10);
   const hashedPass = await bcrypt.hash(password, SALT);
 
-  const updated = await UserService.updatePassById(
-    tokenRow!.userId,
-    hashedPass,
-  );
+  let updated;
+  await prisma.$transaction(async (tx) => {
+    updated = await UserService.updatePassById(tx, tokenRow!.userId, hashedPass);
 
-  // delete the token after updating the password
-  await ResetTokenService.deleteTokenByUserIdAndToken(
-    Number(userId),
-    tokenRow!.token,
-  );
+    // delete the token after updating the password
+    await ResetTokenService.deleteTokenByUserIdAndToken(
+      tx,
+      Number(userId),
+      tokenRow!.token,
+    );
+  });
 
   res
     .status(200)
