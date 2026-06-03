@@ -4,8 +4,11 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "predeploy": "prisma migrate deploy",
     "dev": "nodemon --watch src --exec tsx src/server.ts",
-    "test":"vitest"
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
