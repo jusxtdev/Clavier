@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import rootRouter from "./routes/root.router.js";
 import { AppError } from "./utils/AppError.js";
 import { errorHandler } from "./middleware/errorHandler.middleware.js";
+import cors from "cors"
 
 // configure dotenv
 config();
@@ -19,6 +20,15 @@ const PORT = env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const corsOrigins = env.FRONTEND_URL
+app.use(
+    cors({
+        origin: corsOrigins,
+        credentials: true,
+    }),
+)
+
 
 app.use("/api", rootRouter);
 

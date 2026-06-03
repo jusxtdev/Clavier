@@ -136,7 +136,7 @@ export default function ProductCard({ product }) {
           {/* Price */}
           <div className="flex items-center gap-3 mt-1">
             <span className="font-cormorant text-xl text-clavier-cream">
-              ₹{product.price.toLocaleString('en-IN')}
+              ₹{Number(product.price).toLocaleString('en-IN')}
             </span>
           </div>
 
