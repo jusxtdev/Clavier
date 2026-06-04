@@ -23,7 +23,7 @@ function FilterGroup({ label, children, defaultOpen = true }) {
   );
 }
 
-function CheckboxOption({ label, checked, onChange, count }) {
+function CheckboxOption({ label, checked, onChange }) {
   return (
     <label className="flex items-center gap-3 cursor-pointer group">
       <input
@@ -35,26 +35,17 @@ function CheckboxOption({ label, checked, onChange, count }) {
       <span className="font-inter text-sm text-clavier-muted group-hover:text-clavier-cream transition-colors flex-1">
         {label}
       </span>
-      {count !== undefined && (
-        <span className="font-inter text-[11px] text-clavier-dim">({count})</span>
-      )}
     </label>
   );
 }
 
 export default function FilterSidebar({
-  categoryOptions,
-  categoryFilter,
-  onCategoryChange,
   switchOptions,
   switchFilter,
   onSwitchChange,
   priceRanges,
   priceRange,
   onPriceRangeChange,
-  featureOptions,
-  featureFilters,
-  onFeatureToggle,
   onClearAll,
 }) {
   return (
@@ -71,23 +62,6 @@ export default function FilterSidebar({
           Clear all
         </button>
       </div>
-
-      {/* Layout / Category Filter */}
-      <FilterGroup label="Layout">
-        <CheckboxOption
-          label="All"
-          checked={!categoryFilter}
-          onChange={() => onCategoryChange('')}
-        />
-        {categoryOptions.map(cat => (
-          <CheckboxOption
-            key={cat}
-            label={cat.charAt(0).toUpperCase() + cat.slice(1)}
-            checked={categoryFilter === cat}
-            onChange={() => onCategoryChange(categoryFilter === cat ? '' : cat)}
-          />
-        ))}
-      </FilterGroup>
 
       {/* Switch Type */}
       <FilterGroup label="Switch Type">
@@ -119,18 +93,6 @@ export default function FilterSidebar({
             label={range.label}
             checked={priceRange === range}
             onChange={() => onPriceRangeChange(priceRange === range ? null : range)}
-          />
-        ))}
-      </FilterGroup>
-
-      {/* Features */}
-      <FilterGroup label="Features">
-        {featureOptions.map(feature => (
-          <CheckboxOption
-            key={feature}
-            label={feature}
-            checked={featureFilters.includes(feature)}
-            onChange={() => onFeatureToggle(feature)}
           />
         ))}
       </FilterGroup>

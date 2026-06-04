@@ -55,16 +55,7 @@ const MOCK_PRODUCTS = [
   },
 ];
 
-/* Extract all unique category titles from products */
-function getCategoryOptions(products) {
-  const set = new Set();
-  products.forEach(p => p.categories?.forEach(c => set.add(c.category.title)));
-  return Array.from(set).sort();
-}
-
 const SWITCH_OPTIONS = ['Linear', 'Tactile', 'Clicky', 'Silent'];
-const FEATURE_OPTIONS = ['Hot-swap', 'RGB', 'Wireless', 'Gasket Mount'];
-
 const PRICE_RANGES = [
   { label: 'Under ₹5,000', min: 0, max: 4999 },
   { label: '₹5,000 – ₹10,000', min: 5000, max: 9999 },
@@ -89,10 +80,8 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
   const [priceRange, setPriceRange] = useState(null);
   const [switchFilter, setSwitchFilter] = useState('');
-  const [featureFilters, setFeatureFilters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -111,7 +100,6 @@ export default function ProductsPage() {
     });
 
     if (search) params.set('search', search);
-    if (categoryFilter) params.set('category', categoryFilter);
     if (priceRange) {
       if (priceRange.min > 0) params.set('minPrice', String(priceRange.min));
       if (priceRange.max !== Infinity) params.set('maxPrice', String(priceRange.max));
@@ -135,7 +123,7 @@ export default function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, sortBy, sortOrder, search, categoryFilter, priceRange, switchFilter, featureFilters]);
+  }, [page, limit, sortBy, sortOrder, search, priceRange, switchFilter]);
 
   /* ── Mock data fallback with local filtering ── */
   function applyMockFilters() {
@@ -145,11 +133,6 @@ export default function ProductsPage() {
       const q = search.toLowerCase();
       result = result.filter(p =>
         p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
-      );
-    }
-    if (categoryFilter) {
-      result = result.filter(p =>
-        p.categories?.some(c => c.category.title === categoryFilter)
       );
     }
     if (priceRange) {
@@ -163,11 +146,6 @@ export default function ProductsPage() {
     }
     if (switchFilter) {
       result = result.filter(p => p.description.toLowerCase().includes(switchFilter.toLowerCase()));
-    }
-    if (featureFilters.length > 0) {
-      result = result.filter(p =>
-        featureFilters.every(f => p.description.toLowerCase().includes(f.toLowerCase()))
-      );
     }
 
     // Sort mock
@@ -188,29 +166,21 @@ export default function ProductsPage() {
   /* ── Refetch on filter change ── */
   useEffect(() => {
     setPage(1);
-  }, [search, categoryFilter, priceRange, switchFilter, featureFilters, sortBy, sortOrder]);
+  }, [search, priceRange, switchFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchProducts();
-  }, [page, limit, sortBy, sortOrder, search, categoryFilter, priceRange, switchFilter, featureFilters]);
+  }, [page, limit, sortBy, sortOrder, search, priceRange, switchFilter]);
 
   /* ── Derived values ── */
-  const categoryOptions = getCategoryOptions(products);
   const totalPages = Math.ceil(totalItems / limit);
 
-  /* ─ Active filter pills ── */
+  /* ─ Active filter pills ─ */
   const activeFilters = [];
-  if (categoryFilter) activeFilters.push({ label: categoryFilter, clear: () => setCategoryFilter('') });
   if (priceRange) activeFilters.push({ label: priceRange.label, clear: () => setPriceRange(null) });
   if (switchFilter) activeFilters.push({ label: switchFilter, clear: () => setSwitchFilter('') });
-  featureFilters.forEach(f => activeFilters.push({ label: f, clear: () => setFeatureFilters(prev => prev.filter(x => x !== f)) }));
-
-  const toggleFeature = (f) => {
-    setFeatureFilters(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
-  };
 
   const clearAll = () => {
-    setCategoryFilter('');
     setPriceRange(null);
     setSwitchFilter('');
     setFeatureFilters([]);
@@ -304,18 +274,12 @@ export default function ProductsPage() {
         {/* Sidebar — Desktop */}
         <aside className="hidden lg:block w-[240px] flex-shrink-0">
           <FilterSidebar
-            categoryOptions={categoryOptions}
-            categoryFilter={categoryFilter}
-            onCategoryChange={setCategoryFilter}
             switchOptions={SWITCH_OPTIONS}
             switchFilter={switchFilter}
             onSwitchChange={setSwitchFilter}
             priceRanges={PRICE_RANGES}
             priceRange={priceRange}
             onPriceRangeChange={setPriceRange}
-            featureOptions={FEATURE_OPTIONS}
-            featureFilters={featureFilters}
-            onFeatureToggle={toggleFeature}
             onClearAll={clearAll}
           />
         </aside>
@@ -332,18 +296,12 @@ export default function ProductsPage() {
                 </button>
               </div>
               <FilterSidebar
-                categoryOptions={categoryOptions}
-                categoryFilter={categoryFilter}
-                onCategoryChange={setCategoryFilter}
                 switchOptions={SWITCH_OPTIONS}
                 switchFilter={switchFilter}
                 onSwitchChange={setSwitchFilter}
                 priceRanges={PRICE_RANGES}
                 priceRange={priceRange}
                 onPriceRangeChange={setPriceRange}
-                featureOptions={FEATURE_OPTIONS}
-                featureFilters={featureFilters}
-                onFeatureToggle={toggleFeature}
                 onClearAll={clearAll}
               />
             </div>

@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Eye, ShoppingCart, Star } from 'lucide-react';
+import { Star, Eye } from 'lucide-react';
 
 function getBadge(product) {
   if (product.stock === 0) return { label: 'SOLD OUT', variant: 'out' };
@@ -46,7 +45,6 @@ function getRating(product) {
 }
 
 export default function ProductCard({ product }) {
-  const [wishlisted, setWishlisted] = useState(false);
   const badge = getBadge(product);
   const variant = getVariantLabel(product);
   const { rating, reviews } = getRating(product);
@@ -58,9 +56,9 @@ export default function ProductCard({ product }) {
     >
       <div className="bg-clavier-bg-2 border border-clavier-border group-hover:border-clavier-border-b group-hover:-translate-y-1 transition-all duration-300">
         {/* ── Image Area ── */}
-        <div className="relative bg-[#0D0D0D] aspect-[4/3] p-4 flex items-center justify-center overflow-hidden">
+        <div className="relative bg-[#0D0D0D] aspect-4/3 p-4 flex items-center justify-center overflow-hidden">
           {/* Bottom vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-clavier-bg-2 via-transparent to-transparent z-[1]" style={{ opacity: 0.9 }} />
+          <div className="absolute inset-0 bg-linear-to-t from-clavier-bg-2 via-transparent to-transparent z-1" style={{ opacity: 0.9 }} />
 
           {/* Badge */}
           {badge && (
@@ -75,51 +73,37 @@ export default function ProductCard({ product }) {
             </span>
           )}
 
-          {/* Wishlist */}
-          <button
-            onClick={e => { e.preventDefault(); setWishlisted(!wishlisted); }}
-            className={`absolute top-3 right-3 z-10 bg-clavier-bg-2 border p-2 transition-colors ${
-              wishlisted
-                ? 'border-clavier-red'
-                : 'border-clavier-border hover:border-clavier-red'
-            }`}
-          >
-            <Heart
-              className={`w-[18px] h-[18px] transition-colors ${
-                wishlisted ? 'text-clavier-red fill-clavier-red' : 'text-clavier-dim'
-              }`}
-            />
-          </button>
-
           {/* Product Image */}
           {product.images ? (
             <img
               src={product.images}
               alt={product.title}
-              className="relative z-0 max-h-[80%] max-w-[90%] object-contain group-hover:scale-[1.03] transition-transform duration-400"
+              className="relative z-0 w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-400"
             />
           ) : (
-            <div className="relative z-0 w-16 h-16 bg-clavier-bg-3 rounded-sm" />
+            <div className="relative z-0 w-full h-full bg-clavier-bg-3 flex items-center justify-center">
+              <Eye className="w-8 h-8 text-clavier-dim/30" />
+            </div>
           )}
         </div>
 
-        {/* ── Info Area ── */}
-        <div className="px-5 pb-5 pt-4 flex flex-col gap-2">
+        {/* ── Info Area ─ */}
+        <div className="px-5 pb-5 pt-4 flex flex-col gap-2 min-h-[200px]">
           {/* Category */}
-          <span className="font-inter text-[10px] text-clavier-dim tracking-widest uppercase">
+          <span className="font-inter text-[10px] text-clavier-dim tracking-widest uppercase shrink-0">
             {product.categories?.[0]?.category?.title || 'KEYBOARD'}
           </span>
 
           {/* Name */}
-          <h3 className="font-playfair text-[17px] text-clavier-cream leading-tight group-hover:text-clavier-orange transition-colors duration-200">
+          <h3 className="font-playfair text-[17px] text-clavier-cream leading-tight group-hover:text-clavier-orange transition-colors duration-200 line-clamp-2 shrink-0">
             {product.title}
           </h3>
 
           {/* Variant */}
-          <span className="font-inter text-xs text-clavier-dim">{variant}</span>
+          <span className="font-inter text-xs text-clavier-dim line-clamp-1 shrink-0">{variant}</span>
 
           {/* Rating */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center gap-0.5">
               {[1, 2, 3, 4, 5].map(i => (
                 <Star
