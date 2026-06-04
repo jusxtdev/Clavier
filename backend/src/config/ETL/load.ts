@@ -1,5 +1,4 @@
 import ProductService from "@/services/product.service.js"
-import { prisma } from "../db.js"
 import {products} from "./transform.js"
 
 ProductService

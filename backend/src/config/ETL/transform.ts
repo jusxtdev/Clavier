@@ -1,4 +1,3 @@
-import ProductSchema from "@/schema/product.schema.js";
 import data from "./received.json" with { type: "json" };
 
 let products: any = [];
