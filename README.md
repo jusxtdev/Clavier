@@ -2,7 +2,7 @@
 
 E-commerce application built with Node.js, Express, TypeScript, PostgreSQL, Prisma, JWT authentication, Zod validation, bcrypt, Nodemailer, Vitest, and Supertest.
 
-This backend currently covers authentication, users, products, categories, carts, role-based access control, validation, pagination, filtering, sorting, search, password reset email flow, and automated tests.
+This backend currently covers authentication, users, products, categories, carts, orders, role-based access control, validation, pagination, filtering, sorting, search, password reset email flow.
 
 ## High Level Overview
 
@@ -14,7 +14,7 @@ This project is part of my learning process, so AI is used selectively.
 
 I use AI for:
 
-- Writing tests
+- Drafting and improving tests that I review and understand
 - Writing styles, such as Tailwind CSS
 - README/documentation polish
 
@@ -74,9 +74,10 @@ backend
 - Protected product create, update, and delete flows
 - Category CRUD with pagination
 - Cart add, fetch, update, remove item, and empty cart flows
+- Order creation from cart, order item snapshots, stock decrement, cart cleanup, and order status updates
 - Zod request validation
 - Centralized error handling with `AppError`
-- Prisma models and migrations for users, products, categories, product-category joins, carts, cart items, and reset tokens
+- Prisma models and migrations for users, products, categories, product-category joins, carts, cart items, orders, order items, and reset tokens
 - Router, controller, service, and integration-style tests
 
 ## Requirements
@@ -136,6 +137,7 @@ GET /api
 
 ```bash
 pnpm dev
+pnpm run build
 pnpm test
 ```
 
@@ -144,6 +146,7 @@ Run selected tests:
 ```bash
 pnpm vitest run test/product.service.test.ts
 pnpm vitest run test/cart.router.test.ts
+pnpm vitest run test/order.service.test.ts
 ```
 
 ## Authentication
@@ -345,6 +348,42 @@ Cart behavior notes:
 - Cart quantity cannot be greater than product stock.
 - Product IDs and quantities must be positive integers.
 
+### Orders
+
+All order routes require authentication.
+
+| Method | Route | Description | Roles |
+| --- | --- | --- | --- |
+| `POST` | `/api/orders` | Create an order from the current user's cart | Any authenticated user |
+| `GET` | `/api/orders` | List current user's orders, or all orders for staff/admin users | Any authenticated user |
+| `GET` | `/api/orders/:id` | Get order by ID | Any authenticated user |
+| `PATCH` | `/api/orders/:id` | Update order status | `ADMIN`, `STAFF` |
+
+Update order status body:
+
+```json
+{
+  "status": "SHIPPED"
+}
+```
+
+Allowed order statuses:
+
+```txt
+PENDING
+CONFIRMED
+PROCESSING
+SHIPPED
+```
+
+Order behavior notes:
+
+- Creating an order requires a non-empty cart.
+- Each cart item is copied into `OrderItem` with the product title and price at checkout time.
+- Product stock is decremented by the ordered quantity.
+- The user's cart is emptied after a successful order transaction.
+- New orders are confirmed after checkout.
+
 ## Pagination
 
 List endpoints support `page` and `limit` query parameters.
@@ -406,13 +445,14 @@ Run selected tests:
 ```bash
 pnpm vitest run test/product.service.test.ts
 pnpm vitest run test/cart.router.test.ts
+pnpm vitest run test/order.router.test.ts
 ```
 
 The test suite includes:
 
-- Router tests for auth, users, products, categories, and carts
-- Controller tests for auth, products, and users
-- Service tests for product behavior and Prisma query shape
+- Router tests for auth, users, products, categories, carts, and orders
+- Controller tests for auth, products, users, and orders
+- Service tests for product and order behavior, including Prisma query shape and transaction behavior
 - Integration-style cart tests that use real Express middleware and Prisma database operations
 
 Some cart tests are slower because they intentionally avoid mocking the router/service/database path.
@@ -427,6 +467,8 @@ Current Prisma models:
 - `CategoriesOnProducts`
 - `Cart`
 - `CartItem`
+- `Order`
+- `OrderItem`
 - `Password_reset_token`
 
 Roles:
@@ -441,8 +483,9 @@ BUYER
 
 - Product read routes are public; product write routes are protected by authentication and roles.
 - Category, user, and cart routes are protected behind authentication unless documented as public auth routes.
+- Order routes are authenticated; status updates are limited to `ADMIN` and `STAFF`.
 - Password reset emails use Nodemailer with configured sender credentials.
 - Password reset links use `FRONTEND_URL` as the base URL, falling back to the backend URL when no frontend is configured.
 - Prisma client output is configured to `backend/src/generated/prisma`.
-- Available scripts are `pnpm dev` and `pnpm test`.
-- Docker configuration, seed scripts, and production build scripts have not been added yet.
+- Available scripts are `pnpm dev`, `pnpm run build`, and `pnpm test`.
+- Docker configuration and seed scripts have not been added yet.
