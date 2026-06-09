@@ -1,6 +1,7 @@
 import { prisma } from "@/config/db.js";
 import { Prisma } from "@/generated/prisma/client.js";
 import { AppError } from "@/utils/AppError.js";
+import { PrismaClient } from "@prisma/client/extension";
 
 /**
  * Get a specific product in the user's cart by cart ID and product ID.
@@ -38,10 +39,10 @@ const productInCart = async (cartId: number, productId: number) => {
 /**
  * Add a product to the user's cart.
  * It creates a new cart item with the specified cart ID, product ID, and quantity.
- * @param cartId 
- * @param productId 
- * @param quantity 
- * @returns 
+ * @param cartId
+ * @param productId
+ * @param quantity
+ * @returns
  */
 const addItem = async (cartId: number, productId: number, quantity: number) => {
   let newItem;
@@ -68,9 +69,9 @@ const addItem = async (cartId: number, productId: number, quantity: number) => {
 /**
  * Update the quantity of a specific product in the user's cart.
  * It validates the cart item existence and updates the quantity if found.
- * @param cartId 
- * @param productId 
- * @param newQuantity 
+ * @param cartId
+ * @param productId
+ * @param newQuantity
  * @returns updated cart item if successful, or null if the cart item is not found.
  */
 const updateItem = async (
@@ -81,16 +82,16 @@ const updateItem = async (
   let updated;
   try {
     updated = await prisma.cartItem.update({
-        where : {
-            cartId_productId : {
-                cartId : cartId,
-                productId : productId
-            }
+      where: {
+        cartId_productId: {
+          cartId: cartId,
+          productId: productId,
         },
-        data : {
-            quantity : newQuantity
-        }
-    })
+      },
+      data: {
+        quantity: newQuantity,
+      },
+    });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record not found
@@ -101,64 +102,67 @@ const updateItem = async (
     console.error(error);
     throw new AppError("Internal Server Error", 500);
   }
-  return updated
+  return updated;
 };
 
 /**
  * Delete a specific product from the user's cart by cart ID and product ID.
  * It validates the cart item existence and deletes it if found.
- * @param cartId 
- * @param productId 
+ * @param cartId
+ * @param productId
  * @returns deleted cart item if successful
  */
-const deleteItem = async (cartId : number, productId : number) => {
-  let deleted
+const deleteItem = async (cartId: number, productId: number) => {
+  let deleted;
   try {
     deleted = await prisma.cartItem.delete({
-      where : {
-        cartId_productId : {
-          cartId : cartId,
-          productId : productId
-        }
+      where: {
+        cartId_productId: {
+          cartId: cartId,
+          productId: productId,
+        },
       },
-      select : {
-        cartId : true,
-        product : true
-      }
-    })
+      select: {
+        cartId: true,
+        product: true,
+      },
+    });
   } catch (error) {
-    console.error(error)
-    throw new AppError("Internal Server Error", 500)
-  } 
-  return deleted
-}
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
+  }
+  return deleted;
+};
 
 /**
  * Delete all items from the user's cart.
  * It retrieves the user's cart, validates its existence, and deletes all items from it.
  * @param userId User's ID to clear the cart for.
  * @returns void
- * @throws AppError if the cart is not found for the user. 
+ * @throws AppError if the cart is not found for the user.
  */
-const deleteAllItems = async (cartId : number) => {
+const deleteAllItems = async (
+  tx: Prisma.TransactionClient | PrismaClient,
+  cartId: number,
+) => {
   try {
-    await prisma.cartItem.deleteMany({
-      where : {
-        cartId : cartId
-      }
-    })
+    await tx.cartItem.deleteMany({
+      where: {
+        cartId: cartId,
+      },
+    });
   } catch (error) {
-    console.error(error)
-    throw new AppError("Internal Server Error", 500)
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
-}
+};
 
 const CartItemService = {
   productInCart,
   addItem,
   updateItem,
   deleteItem,
-  deleteAllItems
+  deleteAllItems,
 };
 
 export default CartItemService;

@@ -1,3 +1,4 @@
+import { prisma } from "@/config/db.js";
 import { addToCartInput, updateCartInput } from "@/schema/cart.schema.js";
 import CartService from "@/services/cart.service.js";
 import { AppError } from "@/utils/AppError.js";
@@ -35,8 +36,8 @@ const addToCart = async (req: Request, res: Response) => {
  */
 const getCart = async (req: Request, res: Response) => {
   const userId = Number(req.user?.userId);
-  const cart = await CartService.getUserCart(userId);
-  if (!cart) {
+  const cart = await CartService.getUserCart(prisma, userId);
+  if (!cart || cart.cartItems.length == 0) {
     return res.status(200).json(jsonResponse(true, "Empty Cart", []));
   }
   return res
@@ -104,7 +105,7 @@ const updateCart = async (req: Request, res: Response) => {
  */
 const emptyCart = async (req: Request, res: Response) => {
   const userId = Number(req.user?.userId);
-  await CartService.emptyCart(userId);
+  await CartService.emptyCart(prisma,userId);
 
   res.status(204).send()
 };
