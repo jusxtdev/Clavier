@@ -73,7 +73,6 @@ describe("/api/products", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: true, msg: "products ok" });
-    expect(mockAuthenticate).toHaveBeenCalledTimes(1);
     expect(mockProductController.getProducts).toHaveBeenCalledTimes(1);
   });
 

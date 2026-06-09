@@ -123,7 +123,7 @@ const getOrders = async (
   let orders;
   try {
     orders = await tx.order.findMany({
-      where: role == "BUYER" ? userId : {},
+      where: role == "BUYER" ? { userId } : {},
       select: {
         id: true,
         userId: true,

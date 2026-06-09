@@ -19,7 +19,7 @@ const mockUserController = vi.hoisted(() => ({
   deleteCurrentUser: vi.fn(async (_req: Request, res: Response) => {
     res.status(204).send();
   }),
-  delteUserById: vi.fn(async (_req: Request, res: Response) => {
+  deleteUserById: vi.fn(async (_req: Request, res: Response) => {
     res.status(204).send();
   }),
 }));
@@ -33,9 +33,14 @@ const mockAuthenticate = vi.hoisted(() =>
 
 const mockAuthorize = vi.hoisted(() =>
   vi.fn(
-    () =>
-      (_req: Request, _res: Response, next: NextFunction) =>
-        next(),
+    (roles: string[]) =>
+      (req: Request, res: Response, next: NextFunction) => {
+        if (roles.includes(req.user!.role)) {
+          return next();
+        }
+
+        res.status(403).json({ status: false, msg: "Forbidden" });
+      },
   ),
 );
 
@@ -75,6 +80,7 @@ describe("/api/users", () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: true, msg: "users ok" });
     expect(mockAuthenticate).toHaveBeenCalledTimes(1);
+    expect(mockAuthorize).toHaveBeenCalledWith(["ADMIN"]);
     expect(mockUserController.getUsers).toHaveBeenCalledTimes(1);
   });
 
@@ -144,14 +150,14 @@ describe("/api/users", () => {
     expect(mockUserController.deleteCurrentUser).toHaveBeenCalledTimes(1);
   });
 
-  it("passes delete-by-id requests to UserController.delteUserById", async () => {
+  it("passes delete-by-id requests to UserController.deleteUserById", async () => {
     const app = await createTestApp();
 
     const response = await request(app).delete("/api/users/4");
 
     expect(response.status).toBe(204);
-    expect(mockUserController.delteUserById).toHaveBeenCalledTimes(1);
-    expect(mockUserController.delteUserById).toHaveBeenCalledWith(
+    expect(mockUserController.deleteUserById).toHaveBeenCalledTimes(1);
+    expect(mockUserController.deleteUserById).toHaveBeenCalledWith(
       expect.objectContaining({ params: { id: "4" } }),
       expect.any(Object),
       expect.any(Function),
