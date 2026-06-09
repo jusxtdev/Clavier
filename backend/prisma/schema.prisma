@@ -44,6 +44,8 @@ model User {
   reset_tokens Password_reset_token[]
   cart Cart?
 
+  orders Order[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 }
@@ -97,4 +99,37 @@ model CartItem {
   quantity Int
 
   @@id([cartId, productId]) 
+}
+
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+}
+model Order {
+  id Int @id @default(autoincrement())
+  
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  
+  status OrderStatus @default(PENDING)
+
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+  
+  orderId Int
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId Int
+  productTitle String
+  productPrice Decimal 
+  quantity Int
 }
