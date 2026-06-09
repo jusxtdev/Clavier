@@ -103,8 +103,15 @@ const updateStatus = async (
       data: { status: status },
     });
   } catch (error) {
-    console.error(error);
-    throw new AppError("Internal Server Error", 500);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Record not found
+      if (error.code == "P2025") {
+        throw new AppError(`Order with id ${orderId} not found`, 404);
+      }
+
+      console.error(error);
+      throw new AppError("Internal Server Error", 500);
+    }
   }
 };
 
@@ -170,7 +177,7 @@ const getOrderById = async (
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record not found
       if (error.code == "P2025") {
-        throw new AppError(`Order with id ${orderId} not found`, 404)
+        throw new AppError(`Order with id ${orderId} not found`, 404);
       }
 
       console.error(error);
@@ -181,6 +188,6 @@ const getOrderById = async (
   return order;
 };
 
-const OrderService = { createOrder, getOrders, getOrderById };
+const OrderService = { createOrder, getOrders, getOrderById, updateStatus };
 
 export default OrderService;
