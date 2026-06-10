@@ -73,6 +73,7 @@ const addOrderItemsFromCart = async (
   }
 };
 
+// used updateMany instead of update because updateMany returns the count
 const decrementStockFromCart = async (
   tx: Prisma.TransactionClient,
   cart: NonNullable<Awaited<ReturnType<typeof CartService.getUserCart>>>,
@@ -80,14 +81,23 @@ const decrementStockFromCart = async (
   // for each item
   for (const item of cart.cartItems) {
     // calculate new stock
+    let updated;
     try {
-      await tx.product.update({
-        where: { id: item.product.id },
+      updated = await tx.product.updateMany({
+        where: {
+          id: item.product.id,
+          stock: {
+            gte: item.quantity,
+          },
+        },
         data: { stock: { decrement: item.quantity } },
       });
     } catch (error) {
       console.error(error);
-      throw new AppError("Interna Server Error", 500);
+      throw new AppError("Internal Server Error", 500);
+    }
+    if (updated.count == 0) {
+      throw new AppError("Insufficient Stock", 400)
     }
   }
 };
@@ -108,10 +118,10 @@ const updateStatus = async (
       if (error.code == "P2025") {
         throw new AppError(`Order with id ${orderId} not found`, 404);
       }
-
-      console.error(error);
-      throw new AppError("Internal Server Error", 500);
     }
+
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
 };
 
