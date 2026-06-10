@@ -60,6 +60,10 @@ const getCart = async (req: Request, res: Response) => {
 const deleteCartItem = async (req: Request, res: Response) => {
   const userId = Number(req.user?.userId);
   const productId = Number(req.params.id);
+  
+  if (Number.isNaN(productId)){
+    throw new AppError("Invalid Product Id", 422)
+  }
 
   if (!Number.isInteger(productId) || productId <= 0) {
     throw new AppError("Invalid Product Id", 400);

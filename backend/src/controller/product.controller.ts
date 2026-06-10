@@ -16,11 +16,11 @@ let VALID_SORT_ORDER = ["asc", "desc"];
  * Get all products with pagination, sorting, filtering, and search capabilities.
  * It validates the query parameters, constructs a filter object based on the provided criteria,
  * calls the ProductService to fetch the products, and responds with the product data and pagination info.
- * 
+ *
  * Throws 400 if any of the query parameters are invalid.
- * 
- * @param req 
- * @param res 
+ *
+ * @param req
+ * @param res
  * @throws AppError if any of the query parameters are invalid (e.g., pagination, sorting, filtering)
  */
 const getProducts = async (req: Request, res: Response) => {
@@ -111,21 +111,21 @@ const getProducts = async (req: Request, res: Response) => {
 };
 
 /**
- * Get a product by its ID. 
+ * Get a product by its ID.
  * It validates the product ID from the request parameters,
  * calls the ProductService to fetch the product,
  * and responds with the product data.
- * 
+ *
  * Throws 400 if the product ID is invalid.
- * @param req 
- * @param res 
- * @returns 
+ * @param req
+ * @param res
+ * @returns
  * @throws AppError if the product ID is invalid
  */
 const getProductById = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
 
-  if (!productId) {
+  if (!Number.isInteger(productId) || productId <= 0) {
     throw new AppError("Invalid Id", 400);
   }
 
@@ -141,10 +141,10 @@ const getProductById = async (req: Request, res: Response) => {
  * It validates the input data,
  * calls the ProductService to create the product,
  * and responds with the created product data.
- * 
+ *
  * Throws 400 if the input data is invalid.
- * @param req 
- * @param res 
+ * @param req
+ * @param res
  * @throws AppError if the input data is invalid
  */
 const createProduct = async (req: Request, res: Response) => {
@@ -164,16 +164,17 @@ const createProduct = async (req: Request, res: Response) => {
  * It validates the input data and product ID,
  * calls the ProductService to update the product,
  * and responds with the updated product data.
- * 
+ *
  * Throws 400 if the product ID or input data is invalid.
- * @param req 
- * @param res 
- * @returns 
+ * @param req
+ * @param res
+ * @returns
  * @throws AppError if the product ID or input data is invalid
  */
 const updateProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
-  if (!productId) {
+
+  if (!Number.isInteger(productId) || productId <= 0) {
     throw new AppError("Invalid Id", 400);
   }
 
@@ -194,15 +195,16 @@ const updateProduct = async (req: Request, res: Response) => {
  * It validates the product ID from the request parameters,
  * calls the ProductService to delete the product,
  * and responds with a 204 No Content status.
- * 
+ *
  * Throws 400 if the product ID is invalid.
- * @param req 
- * @param res 
+ * @param req
+ * @param res
  * @throws AppError if the product ID is invalid
  */
 const deleteProduct = async (req: Request, res: Response) => {
   const productId = Number(req.params.id);
-  if (!productId) {
+
+  if (!Number.isInteger(productId) || productId <= 0) {
     throw new AppError("Invalid Id", 400);
   }
 

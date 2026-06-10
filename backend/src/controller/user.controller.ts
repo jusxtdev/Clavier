@@ -18,10 +18,6 @@ import { Request, Response } from "express";
 const getCurrentUser = async (req: Request, res: Response) => {
   const userId = Number(req.user?.userId);
 
-  if (!userId) {
-    throw new AppError("Invalid Id", 400);
-  }
-
   const user = await UserService.findUserById(userId);
 
   return res
@@ -43,9 +39,10 @@ const getCurrentUser = async (req: Request, res: Response) => {
  */
 const getUserById = async (req: Request, res: Response) => {
   const userId = Number(req.params.id);
-  if (!userId) {
+  if (!Number.isInteger(userId) || userId < 0) {
     throw new AppError("Invalid Id", 400);
   }
+
   const user = await UserService.findUserById(userId);
 
   return res
@@ -160,8 +157,8 @@ const promoteUserRole = async (req: Request, res: Response) => {
  */
 const deleteUserById = async (req: Request, res: Response) => {
   const userId = Number(req.params.id);
-  if (!userId) {
-    throw new AppError("Invalid Id", 400);
+  if (!Number.isInteger(userId) || userId < 0) {
+    throw new AppError("Invalid User Id", 400);
   }
 
   await UserService.deleteUserById(userId);
@@ -180,8 +177,8 @@ const deleteUserById = async (req: Request, res: Response) => {
  * @throws AppError if the user ID is invalid
  */
 const deleteCurrentUser = async (req: Request, res: Response) => {
-  const userId = req.user?.userId;
-  if (!userId) {
+  const userId = Number(req.user?.userId);
+  if (!Number.isInteger(userId) || userId < 0) {
     throw new AppError("Invalid Id", 400);
   }
   await UserService.deleteUserById(userId);

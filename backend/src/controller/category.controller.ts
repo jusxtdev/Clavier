@@ -61,7 +61,7 @@ const getCategories = async (req: Request, res: Response) => {
 const getCategoryById = async (req: Request, res: Response) => {
   const categoryId = Number(req.params.id);
 
-  if (!categoryId) {
+  if (!categoryId || Number.isNaN(categoryId)) {
     throw new AppError("Invalid Id", 400);
   }
 
@@ -105,7 +105,7 @@ const updateCategory = async (req: Request, res: Response) => {
   const data: updateCategoryInput = req.body;
 
   const categoryId = Number(req.params.id);
-  if (!categoryId) {
+  if (!categoryId || Number.isNaN(categoryId)) {
     throw new AppError("Invalid Id", 400);
   }
   const updatedCategory = await CategoryService.updateCategoryById(
@@ -131,7 +131,7 @@ const updateCategory = async (req: Request, res: Response) => {
  */
 const deleteCategory = async (req: Request, res: Response) => {
   const categoryId = Number(req.params.id);
-  if (!categoryId) {
+  if (!categoryId || Number.isNaN(categoryId)) {
     throw new AppError("Invalid Id", 400);
   }
   await CategoryService.deleteCategoryById(categoryId);

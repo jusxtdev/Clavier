@@ -1,4 +1,4 @@
-import OrderController from "@/controller/order.conroller.js";
+import OrderController from "@/controller/order.controller.js";
 import authenticate from "@/middleware/authenticate.middleware.js";
 import authorize from "@/middleware/authorize.middleware.js";
 import { validate } from "@/middleware/validate.middleware.js";

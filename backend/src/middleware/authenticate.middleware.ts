@@ -34,7 +34,7 @@ const authenticate = async (
   } catch (error) {
     throw new AppError("Invalid or expired token", 401);
   }
-  if (!decoded.userId) {
+  if (!decoded.userId || Number.isNaN(decoded.userId)) {
     throw new AppError("Invalid Token Payload", 401);
   }
 

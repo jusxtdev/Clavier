@@ -151,11 +151,16 @@ const getOrders = async (
 const getOrderById = async (
   tx: Prisma.TransactionClient | PrismaClient,
   orderId: number,
+  userId: number,
+  role: Role,
 ) => {
   let order;
   try {
     order = await tx.order.findUniqueOrThrow({
-      where: { id: orderId },
+      where: {
+        id: orderId,
+        userId: role == "BUYER" ? userId : {},
+      },
       select: {
         id: true,
         userId: true,
@@ -179,10 +184,9 @@ const getOrderById = async (
       if (error.code == "P2025") {
         throw new AppError(`Order with id ${orderId} not found`, 404);
       }
-
-      console.error(error);
-      throw new AppError("Internal Server Error", 500);
     }
+    console.error(error);
+    throw new AppError("Internal Server Error", 500);
   }
 
   return order;
