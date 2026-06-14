@@ -7,11 +7,13 @@ import express from "express";
 
 const router = express.Router();
 
-router.use(authenticate)
-
+// Public routes - no authentication required
 router.get("/", CategoryController.getCategories)
 
 router.get("/:id", CategoryController.getCategoryById)
+
+// Protected routes - require authentication
+router.use(authenticate)
 
 router.post("/", authorize(["ADMIN"]), validate(CategorySchema.newCategory), CategoryController.createCategory)
 
