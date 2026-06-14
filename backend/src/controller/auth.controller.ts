@@ -8,7 +8,7 @@ import { AppError } from "@/utils/AppError.js";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import generateToken, { jwtPayload } from "@/utils/generateToken.js";
-import storeCookie from "@/utils/storeCookie.js";
+import storeCookie, { getAuthCookieOptions } from "@/utils/storeCookie.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import generateResetToken from "@/utils/generateResetToken.js";
 import { passwordResetEmail } from "@/services/email.service.js";
@@ -103,7 +103,7 @@ const login = async (req: Request, res: Response) => {
  *
  */
 const logout = async (_req: Request, res: Response) => {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt", getAuthCookieOptions(res));
   res.status(200).json(jsonResponse(true, "Logged out successfully"));
 };
 
