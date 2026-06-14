@@ -21,7 +21,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-let corsOrigins = [env.FRONTEND_URL, "http://localhost:5173"]
+// CORS origins - include frontend URL and localhost for development
+const corsOrigins = [
+    env.FRONTEND_URL,
+    "http://localhost:5173",
+    "http://localhost:4173",
+    "https://clavier-pkbt.onrender.com"
+].filter(Boolean);
+
 app.use(
     cors({
         origin: corsOrigins,

@@ -16,7 +16,7 @@ export const env = createEnv({
     NODE_ENV: z.string(),
     SENDER_EMAIL_PASS : z.string(),
     SENDER_EMAIL : z.email(),
-    FRONTEND_URL : z.url().default(""),
+    FRONTEND_URL : z.string().default(""),
   },
   runtimeEnv: process.env,
 });
