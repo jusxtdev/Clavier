@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 
 const SORT_OPTIONS = [
@@ -9,99 +9,18 @@ const SORT_OPTIONS = [
   { value: 'title-asc', label: 'Name: A-Z' },
 ];
 
-function Shop() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const limit = 12;
-
-  // Filter state from URL params
-  const search = searchParams.get('search') || '';
-  const category = searchParams.get('category') || '';
-  const minPrice = searchParams.get('minPrice') || '';
-  const maxPrice = searchParams.get('maxPrice') || '';
-  const sortBy = searchParams.get('sortBy') || 'createdAt';
-  const sortOrder = searchParams.get('sortOrder') || 'desc';
-
-  // Local filter state (for inputs)
+function FilterSidebar({
+  search,
+  category,
+  minPrice,
+  maxPrice,
+  categories,
+  updateFilters,
+  clearFilters,
+}) {
   const [localSearch, setLocalSearch] = useState(search);
   const [localMinPrice, setLocalMinPrice] = useState(minPrice);
   const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
-
-  // Fetch categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await api.get('/categories?limit=20');
-        setCategories(res.data.data || []);
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  // Fetch products when filters change
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const params = new URLSearchParams();
-        params.set('page', currentPage);
-        params.set('limit', limit);
-        if (search) params.set('search', search);
-        if (category) params.set('category', category);
-        if (minPrice) params.set('minPrice', minPrice);
-        if (maxPrice) params.set('maxPrice', maxPrice);
-        if (sortBy) params.set('sortBy', sortBy);
-        if (sortOrder) params.set('sortOrder', sortOrder);
-
-        const res = await api.get(`/products?${params.toString()}`);
-        setProducts(res.data.data || []);
-        setTotalItems(res.data.totalItems || 0);
-      } catch (err) {
-        setError('Failed to load products. Please try again.');
-        console.error('Error fetching products:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [search, category, minPrice, maxPrice, sortBy, sortOrder, currentPage]);
-
-  // Sync local state when URL changes
-  useEffect(() => {
-    setLocalSearch(search);
-    setLocalMinPrice(minPrice);
-    setLocalMaxPrice(maxPrice);
-  }, [search, minPrice, maxPrice]);
-
-  const updateFilters = (updates) => {
-    const newParams = new URLSearchParams(searchParams);
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value) {
-        newParams.set(key, value);
-      } else {
-        newParams.delete(key);
-      }
-    });
-    // Reset page when filters change
-    newParams.set('page', '1');
-    setSearchParams(newParams);
-    setCurrentPage(1);
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -116,22 +35,7 @@ function Shop() {
     updateFilters({ minPrice: localMinPrice, maxPrice: localMaxPrice });
   };
 
-  const handleSortChange = (value) => {
-    const [newSortBy, newSortOrder] = value.split('-');
-    updateFilters({ sortBy: newSortBy, sortOrder: newSortOrder });
-  };
-
-  const clearFilters = () => {
-    setSearchParams(new URLSearchParams());
-    setLocalSearch('');
-    setLocalMinPrice('');
-    setLocalMaxPrice('');
-    setCurrentPage(1);
-  };
-
-  const totalPages = Math.ceil(totalItems / limit);
-
-  const FilterSidebar = () => (
+  return (
     <div className="space-y-8">
       {/* Search */}
       <div>
@@ -213,6 +117,111 @@ function Shop() {
       )}
     </div>
   );
+}
+
+function Shop() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 12;
+
+  // Filter state from URL params
+  const search = searchParams.get('search') || '';
+  const category = searchParams.get('category') || '';
+  const minPrice = searchParams.get('minPrice') || '';
+  const maxPrice = searchParams.get('maxPrice') || '';
+  const sortBy = searchParams.get('sortBy') || 'createdAt';
+  const sortOrder = searchParams.get('sortOrder') || 'desc';
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get('/categories?limit=20');
+        setCategories(res.data.data || []);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch products when filters change
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const params = new URLSearchParams();
+        params.set('page', currentPage);
+        params.set('limit', limit);
+        if (search) params.set('search', search);
+        if (category) params.set('category', category);
+        if (minPrice) params.set('minPrice', minPrice);
+        if (maxPrice) params.set('maxPrice', maxPrice);
+        if (sortBy) params.set('sortBy', sortBy);
+        if (sortOrder) params.set('sortOrder', sortOrder);
+
+        const res = await api.get(`/products?${params.toString()}`);
+        setProducts(res.data.data || []);
+        setTotalItems(res.data.totalItems || 0);
+      } catch (err) {
+        setError('Failed to load products. Please try again.');
+        console.error('Error fetching products:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [search, category, minPrice, maxPrice, sortBy, sortOrder, currentPage]);
+
+  const updateFilters = (updates) => {
+    const newParams = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        newParams.set(key, value);
+      } else {
+        newParams.delete(key);
+      }
+    });
+    // Reset page when filters change
+    newParams.set('page', '1');
+    setSearchParams(newParams);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (value) => {
+    const [newSortBy, newSortOrder] = value.split('-');
+    updateFilters({ sortBy: newSortBy, sortOrder: newSortOrder });
+  };
+
+  const clearFilters = () => {
+    setSearchParams(new URLSearchParams());
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(totalItems / limit);
+  const filterSidebarKey = [search, minPrice, maxPrice].join('|');
+
+  const filterSidebarProps = {
+    search,
+    category,
+    minPrice,
+    maxPrice,
+    categories,
+    updateFilters,
+    clearFilters,
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
@@ -220,7 +229,7 @@ function Shop() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-64 shrink-0">
           <div className="sticky top-24">
-            <FilterSidebar />
+            <FilterSidebar key={filterSidebarKey} {...filterSidebarProps} />
           </div>
         </aside>
 
@@ -399,7 +408,7 @@ function Shop() {
                 </svg>
               </button>
             </div>
-            <FilterSidebar />
+            <FilterSidebar key={filterSidebarKey} {...filterSidebarProps} />
           </div>
         </div>
       )}

@@ -20,6 +20,7 @@ import ResetPassword from './pages/ResetPassword';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import Admin from './pages/Admin';
+import NotFound from './pages/NotFound';
 
 function App() {
   const fetchUser = useAuthStore((state) => state.fetchUser);
@@ -54,6 +55,7 @@ function App() {
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/:id" element={<OrderDetail />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <Footer />
