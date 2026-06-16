@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 
@@ -21,6 +21,15 @@ function FilterSidebar({
   const [localSearch, setLocalSearch] = useState(search);
   const [localMinPrice, setLocalMinPrice] = useState(minPrice);
   const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
+  const searchInputRef = useRef(null);
+
+  // Sync local state when search prop changes
+  useEffect(() => {
+    setLocalSearch(search);
+    if (searchInputRef.current && document.activeElement !== searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [search]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -40,17 +49,18 @@ function FilterSidebar({
       {/* Search */}
       <div>
         <h3 className="text-sm font-semibold text-stone-900 mb-3">Search</h3>
-        <form onSubmit={handleSearch} className="flex gap-2">
+        <form onSubmit={handleSearch} className="flex gap-2 w-full">
           <input
+            ref={searchInputRef}
             type="text"
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Search products..."
-            className="flex-1 px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+            className="min-w-0 flex-1 px-4 py-2.5 border border-stone-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent bg-white"
           />
           <button
             type="submit"
-            className="px-3 py-2 bg-stone-900 text-white rounded-lg text-sm hover:bg-stone-800"
+            className="shrink-0 px-4 py-2.5 bg-stone-900 text-white rounded-xl text-sm hover:bg-stone-800 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -64,15 +74,26 @@ function FilterSidebar({
         <h3 className="text-sm font-semibold text-stone-900 mb-3">Category</h3>
         <div className="space-y-2">
           {categories.map((cat) => (
-            <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
+            <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                category === cat.title
+                  ? 'bg-stone-900 border-stone-900'
+                  : 'border-stone-300 group-hover:border-stone-400'
+              }`}>
+                {category === cat.title && (
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
               <input
                 type="radio"
                 name="category"
                 checked={category === cat.title}
                 onChange={() => handleCategoryChange(cat.title)}
-                className="w-4 h-4 text-stone-900 border-stone-300 focus:ring-stone-900"
+                className="sr-only"
               />
-              <span className="text-sm text-stone-600 capitalize">{cat.title}</span>
+              <span className="text-sm text-stone-600 group-hover:text-stone-900 capitalize transition-colors">{cat.title}</span>
             </label>
           ))}
         </div>
@@ -81,13 +102,13 @@ function FilterSidebar({
       {/* Price Range */}
       <div>
         <h3 className="text-sm font-semibold text-stone-900 mb-3">Price Range</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <input
             type="number"
             value={localMinPrice}
             onChange={(e) => setLocalMinPrice(e.target.value)}
             placeholder="Min"
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+            className="w-full px-4 py-2.5 border border-stone-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent bg-white"
           />
           <span className="text-stone-400">—</span>
           <input
@@ -95,12 +116,12 @@ function FilterSidebar({
             value={localMaxPrice}
             onChange={(e) => setLocalMaxPrice(e.target.value)}
             placeholder="Max"
-            className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
+            className="w-full px-4 py-2.5 border border-stone-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent bg-white"
           />
         </div>
         <button
           onClick={handlePriceChange}
-          className="mt-2 w-full px-3 py-2 border border-stone-300 rounded-lg text-sm text-stone-600 hover:bg-stone-50"
+          className="mt-3 w-full px-4 py-2.5 bg-stone-100 text-stone-700 rounded-xl text-sm font-medium hover:bg-stone-200 transition-colors"
         >
           Apply
         </button>
@@ -110,8 +131,11 @@ function FilterSidebar({
       {(search || category || minPrice || maxPrice) && (
         <button
           onClick={clearFilters}
-          className="text-sm text-stone-500 hover:text-stone-900 underline"
+          className="text-sm text-stone-500 hover:text-stone-900 transition-colors flex items-center gap-1"
         >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
           Clear all filters
         </button>
       )}
@@ -194,7 +218,6 @@ function Shop() {
         newParams.delete(key);
       }
     });
-    // Reset page when filters change
     newParams.set('page', '1');
     setSearchParams(newParams);
     setCurrentPage(1);
@@ -224,168 +247,197 @@ function Shop() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 shrink-0">
-          <div className="sticky top-24">
-            <FilterSidebar key={filterSidebarKey} {...filterSidebarProps} />
-          </div>
-        </aside>
+    <div className="bg-stone-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-white border-b border-stone-200">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <h1 className="text-3xl font-semibold text-stone-900 mb-2">Shop</h1>
+          <p className="text-stone-500">
+            {totalItems} {totalItems === 1 ? 'product' : 'products'}
+            {category && <span className="text-stone-700"> in <span className="capitalize">{category}</span></span>}
+          </p>
+        </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="flex-1">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-semibold text-stone-900">Shop</h1>
-              <p className="text-stone-500 mt-1">
-                {totalItems} {totalItems === 1 ? 'product' : 'products'}
-                {category && ` in ${category}`}
-              </p>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:block w-72 shrink-0">
+            <div className="sticky top-6 bg-white rounded-2xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-stone-900 mb-6">Filters</h2>
+              <FilterSidebar key={filterSidebarKey} {...filterSidebarProps} />
             </div>
+          </aside>
 
-            <div className="flex items-center gap-4">
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               {/* Mobile filter button */}
               <button
                 onClick={() => setIsMobileFiltersOpen(true)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-700 hover:bg-stone-50"
+                className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-sm text-stone-700 hover:bg-stone-50 transition-colors shadow-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                 </svg>
                 Filters
+                {(search || category || minPrice || maxPrice) && (
+                  <span className="w-2 h-2 bg-stone-900 rounded-full"></span>
+                )}
               </button>
 
-              {/* Sort dropdown */}
-              <select
-                value={`${sortBy}-${sortOrder}`}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent"
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Error state */}
-          {error && (
-            <div className="p-6 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center">
-              {error}
-            </div>
-          )}
-
-          {/* Loading state */}
-          {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-xl shadow-sm animate-pulse">
-                  <div className="aspect-square bg-stone-200 rounded-t-xl" />
-                  <div className="p-4 space-y-3">
-                    <div className="h-4 bg-stone-200 rounded w-3/4" />
-                    <div className="h-4 bg-stone-200 rounded w-1/4" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-stone-500 mb-4">No products found</p>
-              {(search || category || minPrice || maxPrice) && (
-                <button
-                  onClick={clearFilters}
-                  className="text-stone-900 font-medium underline"
+              <div className="sm:ml-auto">
+                {/* Sort dropdown */}
+                <select
+                  value={`${sortBy}-${sortOrder}`}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="pl-4 pr-10 py-2.5 bg-white border border-stone-200 rounded-xl text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-900 shadow-sm"
                 >
-                  Clear filters
-                </button>
-              )}
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Product Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <Link
-                    key={product.id}
-                    to={`/products/${product.id}`}
-                    className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-                  >
-                    <div className="aspect-square bg-stone-100">
-                      {product.images || product.imageURL ? (
-                        <img
-                          src={product.images || product.imageURL}
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling.style.display = 'flex';
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className="w-full h-full flex items-center justify-center text-stone-400"
-                        style={{ display: product.images || product.imageURL ? 'none' : 'flex' }}
-                      >
-                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
+
+            {/* Error state */}
+            {error && (
+              <div className="p-6 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-center mb-6">
+                {error}
+              </div>
+            )}
+
+            {/* Loading state */}
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse border border-stone-200">
+                    <div className="aspect-square bg-stone-100" />
+                    <div className="p-4 space-y-3">
+                      <div className="h-5 bg-stone-200 rounded w-3/4" />
+                      <div className="h-4 bg-stone-200 rounded w-1/4" />
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-stone-900 truncate">{product.title}</h3>
-                      <p className="text-stone-600 mt-1">${product.price}</p>
-                      {product.stock === 0 && (
-                        <span className="text-xs text-red-500 mt-1 block font-medium">Out of Stock</span>
-                      )}
-                    </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-12">
-                  <button
-                    onClick={() => {
-                      const newPage = currentPage - 1;
-                      setCurrentPage(newPage);
-                      const newParams = new URLSearchParams(searchParams);
-                      newParams.set('page', newPage);
-                      setSearchParams(newParams);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-700 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  <span className="px-4 py-2 text-sm text-stone-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-
-                  <button
-                    onClick={() => {
-                      const newPage = currentPage + 1;
-                      setCurrentPage(newPage);
-                      const newParams = new URLSearchParams(searchParams);
-                      newParams.set('page', newPage);
-                      setSearchParams(newParams);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    disabled={currentPage === totalPages}
-                    className="px-4 py-2 border border-stone-300 rounded-lg text-sm text-stone-700 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
+            ) : products.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-2xl border border-stone-200">
+                <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
-              )}
-            </>
-          )}
+                <p className="text-stone-500 mb-4">No products found</p>
+                {(search || category || minPrice || maxPrice) && (
+                  <button
+                    onClick={clearFilters}
+                    className="text-stone-900 font-medium hover:text-stone-600 transition-colors"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Product Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {products.map((product) => (
+                    <Link
+                      key={product.id}
+                      to={`/products/${product.id}`}
+                      className="group bg-white rounded-2xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-xl hover:border-stone-300 transition-all duration-300"
+                    >
+                      <div className="relative aspect-square bg-stone-100 overflow-hidden">
+                        {product.images || product.imageURL ? (
+                          <img
+                            src={product.images || product.imageURL}
+                            alt={product.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="absolute inset-0 w-full h-full flex items-center justify-center text-stone-400"
+                          style={{ display: product.images || product.imageURL ? 'none' : 'flex' }}
+                        >
+                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        {/* Out of stock overlay */}
+                        {product.stock === 0 && (
+                          <div className="absolute inset-0 bg-stone-900/60 flex items-center justify-center">
+                            <span className="px-3 py-1.5 bg-white text-stone-900 text-sm font-semibold rounded-lg">
+                              Out of Stock
+                            </span>
+                          </div>
+                        )}
+                        {/* Low stock indicator */}
+                        {product.stock > 0 && product.stock <= 5 && (
+                          <div className="absolute top-3 left-3">
+                            <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-md">
+                              Only {product.stock} left
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-medium text-stone-900 truncate group-hover:text-stone-600 transition-colors">
+                          {product.title}
+                        </h3>
+                        <p className="text-lg font-bold text-stone-900 mt-1">${product.price}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-12">
+                    <button
+                      onClick={() => {
+                        const newPage = currentPage - 1;
+                        setCurrentPage(newPage);
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.set('page', newPage);
+                        setSearchParams(newParams);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-sm text-stone-700 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Previous
+                    </button>
+
+                    <span className="px-4 py-2.5 text-sm text-stone-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
+
+                    <button
+                      onClick={() => {
+                        const newPage = currentPage + 1;
+                        setCurrentPage(newPage);
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.set('page', newPage);
+                        setSearchParams(newParams);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-sm text-stone-700 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -393,15 +445,15 @@ function Shop() {
       {isMobileFiltersOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsMobileFiltersOpen(false)}
           />
-          <div className="absolute right-0 top-0 bottom-0 w-80 max-w-full bg-white p-6 overflow-y-auto">
+          <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-stone-900">Filters</h2>
               <button
                 onClick={() => setIsMobileFiltersOpen(false)}
-                className="p-2 text-stone-500 hover:text-stone-900"
+                className="p-2 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -59,15 +59,15 @@ function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <nav className="max-w-6xl mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
+      <nav className="max-w-7xl mx-auto px-6">
+        <div className="relative flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="text-2xl font-semibold text-stone-900 tracking-tight">
             Clavier
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:absolute md:left-1/2 md:-translate-x-1/2 md:flex items-center gap-8">
             <Link
               to="/"
               className={`text-sm font-medium transition-colors ${
