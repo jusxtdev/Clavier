@@ -59,10 +59,21 @@ const categoryIcons = {
   ),
 };
 
+const heroPatternBackground = `url("data:image/svg+xml,%3Csvg width='42' height='42' viewBox='0 0 42 42' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M21 15v12M15 21h12'/%3E%3C/g%3E%3C/svg%3E")`;
+
 function Home() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+  const [isHeroHovered, setIsHeroHovered] = useState(false);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setMousePos({ x, y });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,15 +96,36 @@ function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative w-full bg-stone-900 text-white overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }} />
+      <section
+        className="relative w-full bg-stone-900 text-white overflow-hidden cursor-default"
+        onMouseEnter={(e) => {
+          setIsHeroHovered(true);
+          handleMouseMove(e);
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setIsHeroHovered(false)}
+      >
+        {/* Background patterns - z-0 puts behind content but above bg */}
+        <div className="absolute inset-0 z-0">
+          {/* Base stroke pattern */}
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{ backgroundImage: heroPatternBackground }}
+          />
+
+          {/* Hover stroke reveal */}
+          <div
+            className="absolute inset-0 pointer-events-none transition-opacity duration-150"
+            style={{
+              backgroundImage: heroPatternBackground,
+              opacity: isHeroHovered ? 1 : 0,
+              WebkitMaskImage: `radial-gradient(150px circle at ${mousePos.x}% ${mousePos.y}%, #000 0 55%, transparent 100%)`,
+              maskImage: `radial-gradient(150px circle at ${mousePos.x}% ${mousePos.y}%, #000 0 55%, transparent 100%)`,
+            }}
+          />
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-6 py-32 md:py-40 text-center">
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-32 md:py-40 text-center">
           <span className="inline-block px-4 py-1.5 bg-stone-800 text-stone-300 text-sm font-medium rounded-full mb-6 tracking-wide">
             Premium Keyboards
           </span>
