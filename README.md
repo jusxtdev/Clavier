@@ -25,7 +25,7 @@ Full-stack e-commerce application with a Node.js/Express/TypeScript backend and 
 
 ## High Level Overview
 
-![E-Commerce backend overview](./E-Commerce.png)
+<!-- ![E-Commerce backend overview](./E-Commerce.png) -->
 
 ## AI Usage Note
 
