@@ -11,11 +11,12 @@ import generateToken, { jwtPayload } from "@/utils/generateToken.js";
 import storeCookie, { getAuthCookieOptions } from "@/utils/storeCookie.js";
 import { jsonResponse } from "@/utils/jsonResponse.js";
 import generateResetToken from "@/utils/generateResetToken.js";
-import { passwordResetEmail } from "@/services/email.service.js";
+// import { passwordResetEmail } from "@/services/email.service.js";
 import { env } from "@/env.js";
 import UserService from "@/services/user.service.js";
 import ResetTokenService from "@/services/resetToken.service.js";
 import { prisma } from "@/config/db.js";
+import { passwordResetEmail } from "@/services/email.service.js";
 
 /**
  * Handles user signup logic.
@@ -203,7 +204,11 @@ const resetpass = async (req: Request, res: Response) => {
 
   let updated;
   await prisma.$transaction(async (tx) => {
-    updated = await UserService.updatePassById(tx, tokenRow!.userId, hashedPass);
+    updated = await UserService.updatePassById(
+      tx,
+      tokenRow!.userId,
+      hashedPass,
+    );
 
     // delete the token after updating the password
     await ResetTokenService.deleteTokenByUserIdAndToken(

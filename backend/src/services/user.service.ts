@@ -62,7 +62,7 @@ const findUserByEmail = async (email: string) => {
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // Record not found
-      if (error.code == "P2025") {
+      if (error.code === "P2025") {
         return null;
       }
     }

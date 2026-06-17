@@ -1,8 +1,27 @@
-# E-Commerce App (Backend Focused)
+# E-Commerce App
 
-E-commerce application built with Node.js, Express, TypeScript, PostgreSQL, Prisma, JWT authentication, Zod validation, bcrypt, Nodemailer, Vitest, and Supertest.
+Full-stack e-commerce application with a Node.js/Express/TypeScript backend and a React/Tailwind frontend.
 
-This backend currently covers authentication, users, products, categories, carts, orders, role-based access control, validation, pagination, filtering, sorting, search, password reset email flow.
+## Tech Stack
+
+### Backend
+- Node.js with Express 5
+- TypeScript
+- PostgreSQL with Prisma 7
+- JWT authentication (HTTP cookies or bearer tokens)
+- bcrypt password hashing
+- Nodemailer for password reset emails
+- Zod request validation
+- Vitest and Supertest for tests
+- pnpm
+
+### Frontend
+- React 19
+- Vite
+- Tailwind CSS 4
+- Zustand (state management)
+- React Router 7
+- Axios (HTTP client)
 
 ## High Level Overview
 
@@ -23,48 +42,50 @@ I do not use AI for:
 - Core backend logic
 - Frontend component or state logic
 
-## Tech Stack
-
-- Node.js
-- Express 5
-- TypeScript
-- PostgreSQL
-- Prisma 7
-- Zod
-- JWT authentication with HTTP cookies or bearer tokens
-- bcrypt password hashing
-- Nodemailer for password reset emails
-- Vitest and Supertest for tests
-- pnpm
-
 ## Project Structure
 
 ```txt
-backend
-├── package.json
-├── pnpm-workspace.yaml
-├── prisma
-│   ├── migrations
-│   └── schema.prisma
-├── src
-│   ├── app.ts
-│   ├── config
-│   ├── controller
-│   ├── generated
-│   ├── middleware
-│   ├── routes
-│   ├── schema
-│   ├── services
-│   ├── types
-│   ├── utils
-│   └── server.ts
-├── test
-├── tsconfig.json
-└── vitest.config.ts
+.
+├── backend
+│   ├── package.json
+│   ├── pnpm-workspace.yaml
+│   ├── prisma
+│   │   ├── migrations
+│   │   └── schema.prisma
+│   ├── src
+│   │   ├── app.ts
+│   │   ├── config
+│   │   ├── controller
+│   │   ├── generated
+│   │   ├── middleware
+│   │   ├── routes
+│   │   ├── schema
+│   │   ├── services
+│   │   ├── types
+│   │   ├── utils
+│   │   └── server.ts
+│   ├── test
+│   ├── tsconfig.json
+│   └── vitest.config.ts
+├── frontend
+│   ├── package.json
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── public
+│   ├── src
+│   │   ├── components
+│   │   ├── hooks
+│   │   ├── pages
+│   │   ├── stores
+│   │   └── App.tsx
+│   ├── vite.config.js
+│   └── dist
+└── README.md
 ```
 
 ## Features
 
+### Backend
 - Signup, login, logout, and authenticated user sessions
 - Password reset token generation, hashed token storage, token expiry, and email delivery
 - JWT authentication middleware using `Authorization: Bearer <token>` or the `jwt` cookie
@@ -77,8 +98,16 @@ backend
 - Order creation from cart, order item snapshots, stock decrement, cart cleanup, and order status updates
 - Zod request validation
 - Centralized error handling with `AppError`
-- Prisma models and migrations for users, products, categories, product-category joins, carts, cart items, orders, order items, and reset tokens
 - Router, controller, service, and integration-style tests
+
+### Frontend
+- User authentication (signup, login, logout)
+- Password reset flow
+- Product browsing with search, filters, and sorting
+- Shopping cart management
+- Order placement and order history
+- Responsive design with Tailwind CSS
+- State management with Zustand
 
 ## Requirements
 
@@ -88,6 +117,8 @@ backend
 - Gmail account/app password or compatible SMTP credentials for Nodemailer
 
 ## Getting Started
+
+### Backend
 
 Install dependencies:
 
@@ -106,7 +137,7 @@ JWT_EXPIRES_IN=604800
 NODE_ENV="development"
 SENDER_EMAIL="your-email@gmail.com"
 SENDER_EMAIL_PASS="your-gmail-app-password"
-FRONTEND_URL="http://localhost:3000"
+FRONTEND_URL="http://localhost:5173"
 ```
 
 Run database migrations:
@@ -121,7 +152,34 @@ Start the development server:
 pnpm dev
 ```
 
-The API is mounted at:
+### Frontend
+
+Install dependencies:
+
+```bash
+cd frontend
+pnpm install
+```
+
+Create a `.env` file in `frontend`:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+Start the development server:
+
+```bash
+pnpm dev
+```
+
+The frontend is available at:
+
+```txt
+http://localhost:5173
+```
+
+The backend API is mounted at:
 
 ```txt
 http://localhost:3000/api
@@ -135,6 +193,8 @@ GET /api
 
 ## Scripts
 
+### Backend
+
 ```bash
 pnpm dev
 pnpm run build
@@ -147,6 +207,15 @@ Run selected tests:
 pnpm vitest run test/product.service.test.ts
 pnpm vitest run test/cart.router.test.ts
 pnpm vitest run test/order.service.test.ts
+```
+
+### Frontend
+
+```bash
+pnpm dev
+pnpm build
+pnpm lint
+pnpm preview
 ```
 
 ## Authentication
@@ -437,6 +506,7 @@ Some delete operations return `204 No Content`.
 Run the full test suite:
 
 ```bash
+cd backend
 pnpm test
 ```
 
@@ -487,5 +557,4 @@ BUYER
 - Password reset emails use Nodemailer with configured sender credentials.
 - Password reset links use `FRONTEND_URL` as the base URL, falling back to the backend URL when no frontend is configured.
 - Prisma client output is configured to `backend/src/generated/prisma`.
-- Available scripts are `pnpm dev`, `pnpm run build`, and `pnpm test`.
 - Docker configuration and seed scripts have not been added yet.
