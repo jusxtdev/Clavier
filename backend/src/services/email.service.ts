@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
  * @returns void
  */
 export const passwordResetEmail = async (receiverEmail: string, resetLink: string) => {
-  await transporter.sendMail({
+  const mailData = {
     from: env.SENDER_EMAIL,
     to: receiverEmail,
     subject: "Reset your password",
@@ -25,5 +25,15 @@ export const passwordResetEmail = async (receiverEmail: string, resetLink: strin
             <p>Click below to reset password:</p>
             <a href="${resetLink}">${resetLink}</a>
         `,
+  }
+  await new Promise ((resolve, reject ) => {
+    transporter.sendMail(mailData, (err, info) => {
+      if (err){
+        console.error(err)
+        reject(err)
+      } else {
+        resolve(info)
+      }
+    })
   });
 };
