@@ -23,10 +23,6 @@ Full-stack e-commerce application with a Node.js/Express/TypeScript backend and 
 - React Router 7
 - Axios (HTTP client)
 
-## High Level Overview
-
-<!-- ![E-Commerce backend overview](./E-Commerce.png) -->
-
 ## AI Usage Note
 
 This project is part of my learning process, so AI is used selectively.
