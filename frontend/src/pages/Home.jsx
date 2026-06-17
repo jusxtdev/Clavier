@@ -125,7 +125,8 @@ function Home() {
           />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 py-32 md:py-40 text-center">
+        <div className="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-16 md:pt-20 text-center">
+          <div id='hero' className='bg-stone-900/2 backdrop-blur-md py-18 px-8 rounded-4xl max-w-3xl mx-auto border border-white/20'>
           <span className="inline-block px-4 py-1.5 bg-stone-800 text-stone-300 text-sm font-medium rounded-full mb-6 tracking-wide">
             Premium Keyboards
           </span>
@@ -151,6 +152,8 @@ function Home() {
             >
               Explore Mechanical
             </Link>
+          </div>
+
           </div>
         </div>
       </section>
